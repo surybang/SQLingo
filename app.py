@@ -15,6 +15,15 @@ conn = duckdb.connect()
 # on ne peut plus utiliser l'objet dataframe df directement
 conn.register('data', df)
 
+option = st.selectbox(
+    "Que voulez-vous réviser ?",
+    ("Joins", "Groupby", "Windows Functions"),
+    index=None,
+    placeholder="Sélectionner un thème",
+)
+st.write("Vous avez sélectionné : ", option)
+
+
 # Les onglets
 tabs = st.tabs(["First tab"])
 
