@@ -1,42 +1,48 @@
-import streamlit as st 
-import pandas as pd 
-import duckdb
-import os 
+# pylint: disable=missing-module-docstring
 import io
 
+import duckdb
+import pandas as pd
+import streamlit as st
 
-csv = '''
+
+def my_func():
+    """
+    coucou
+    """
+    return "coucou"
+
+
+
+CSV = """
 beverage, price
 orange juice, 2.5
 Expresso, 2
 Tea, 3
-'''
-beverages = pd.read_csv(io.StringIO(csv))
+"""
+beverages = pd.read_csv(io.StringIO(CSV))
 
-csv2 = '''
+CSV2 = """
 food_item, food_price
 cookie juice, 2.5
 chocolatine, 2
 muffin, 3
-'''
-food_items = pd.read_csv(io.StringIO(csv2))
+"""
+food_items = pd.read_csv(io.StringIO(CSV2))
 
 
-answer = '''
+ANSWER = """
 SELECT * FROM beverages
 CROSS JOIN food_items
-'''
+"""
 
-solution = duckdb.sql(answer).df()
-
+solution_df = duckdb.sql(ANSWER).df()
 
 
 # ------------------ #
 # Affichage de l'app #
 # ------------------ #
-st.title('SQLingo')
-
-
+st.title(":sunglasses: SQLingo :sunglasses:")
 
 
 with st.sidebar:
@@ -49,30 +55,38 @@ with st.sidebar:
     st.write("Vous avez sélectionné : ", option)
 
 
-st.header("Saisir votre requête SQL :")
-query = st.text_area(label="Juste ici", key="user_input")
+query = st.text_area(label="Saisir votre requête SQL :", key="user_input")
 
-if query : 
+
+if query:
     result = duckdb.sql(query).df()
     st.dataframe(result)
 
     # Comparer le nombre de colonnes des deux dataframes
-    if len(result.columns) != len(solution.columns):
+    if len(result.columns) != len(solution_df.columns):
         st.write("Il manque des colonnes à votre requête")
 
-    # Comparer le nomnbre de lignes des deux dataframes 
-    n_lines_difference = result.shape[0] - solution.shape[0]
-    if n_lines_difference != 0 : 
-        st.write(f"Votre requête a {n_lines_difference} lignes différentes de la solution")
+    try:
+        result = result[solution_df.columns]
+        if st.dataframe(result.compare(solution_df)):
+            st.dataframe(solution_df)
+    except KeyError as e:
+        st.write("Il manque des colonnes à votre requête")
+
+    # Comparer le nomnbre de lignes des deux dataframes
+    n_lines_difference = result.shape[0] - solution_df.shape[0]
+    if n_lines_difference != 0:
+        st.write(
+            f"Votre requête a {n_lines_difference} lignes différentes de la solution"
+        )
+
+    # Comparer les valeurs dans le dataframe
 
 
-
-tab2, tab3 = st.tabs (["Tables", "Solution"])
-
-with tab2: 
+tab2, tab3 = st.tabs(["Tables", "Solution"])
+with tab2:
     st.dataframe(beverages)
 
 
-with tab3: 
-    st.dataframe(solution)
-        
+with tab3:
+    st.dataframe(solution_df)
