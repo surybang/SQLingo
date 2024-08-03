@@ -49,25 +49,30 @@ with st.sidebar:
     st.write("Vous avez sélectionné : ", option)
 
 
-# Les onglets
-tabs = st.tabs(["Tables", "Solutions"])
+st.header("Saisir votre requête SQL :")
+query = st.text_area(label="Juste ici", key="user_input")
 
-# Streamlit version 1.32.2 -> obliger de déclarer ce qu'est tab1 de cette façon 
-# au lieu de tab1, tab2 ... = st.tabs(['t1', 't2', ...])
-tab1 = tabs[0]
-tab2 = tabs[1]
+if query : 
+    result = duckdb.sql(query).df()
+    st.dataframe(result)
 
-with tab1: 
-    sql_query = st.text_area(label="Entrez votre texte")
-    
-    if sql_query:
-        try:
-            results = duckdb.sql(sql_query).df()
-            st.write(f"La réponse attendue est la suivante : {answer}")
-            st.dataframe(results)
-        except Exception as e:
-            st.error(f"Error executing query: {e}")
-        if sql_query == answer:
-            st.write("Bravo vous avez la bonne réponse !")
-    else:
-        st.write("Please enter a SQL query.")
+    # Comparer le nombre de colonnes des deux dataframes
+    if len(result.columns) != len(solution.columns):
+        st.write("Il manque des colonnes à votre requête")
+
+    # Comparer le nomnbre de lignes des deux dataframes 
+    n_lines_difference = result.shape[0] - solution.shape[0]
+    if n_lines_difference != 0 : 
+        st.write(f"Votre requête a {n_lines_difference} lignes différentes de la solution")
+
+
+
+tab2, tab3 = st.tabs (["Tables", "Solution"])
+
+with tab2: 
+    st.dataframe(beverages)
+
+
+with tab3: 
+    st.dataframe(solution)
+        
