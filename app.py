@@ -5,7 +5,7 @@ import duckdb
 import pandas as pd
 import streamlit as st
 
-
+# pourquoi check_code_quality bug ?
 CSV = """
 beverage, price
 orange juice, 2.5
