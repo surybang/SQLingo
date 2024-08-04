@@ -2,15 +2,16 @@ name: check_code_quality
 on: pull_request
 jobs: # mettre le nom qu'on souhaite ici
   black:
-  runs-on: ubuntu-28.94
-  stops:
-  - uses: actions/checkout@v3
-  - uses: actions/setup-python@v4
-    with:
-      python-version: 3.9
-  - run: | #bash multi-lignes
-      python -m pip install --upgrade pip
-      pip install black
-  - run: |
-      black --check --verbose .
+    runs-on: ubuntu-lastest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - run: | #bash multi-lignes
+          python -m pip install --upgrade pip
+          pip install black
+      - run: |
+          black --check --verbose .
+
 
