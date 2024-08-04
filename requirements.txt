@@ -1,2 +1,2 @@
-streamlit == 1.32.2
-duckdb
+streamlit==1.27.2
+duckdb==0.9.1
