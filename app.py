@@ -6,21 +6,13 @@ import pandas as pd
 import streamlit as st
 
 
-def my_func():
-    """
-    coucou
-    """
-    return "coucou"
-
-
-
 CSV = """
 beverage, price
 orange juice, 2.5
 Expresso, 2
 Tea, 3
 """
-beverages = pd.read_csv(io.StringIO(CSV))
+beverages : pd.DataFrame = pd.read_csv(io.StringIO(CSV))
 
 CSV2 = """
 food_item, food_price
@@ -28,7 +20,7 @@ cookie juice, 2.5
 chocolatine, 2
 muffin, 3
 """
-food_items = pd.read_csv(io.StringIO(CSV2))
+food_items : pd.DataFrame = pd.read_csv(io.StringIO(CSV2))
 
 
 ANSWER = """
@@ -36,7 +28,7 @@ SELECT * FROM beverages
 CROSS JOIN food_items
 """
 
-solution_df = duckdb.sql(ANSWER).df()
+solution_df : pd.DataFrame = duckdb.sql(ANSWER).df()
 
 
 # ------------------ #
