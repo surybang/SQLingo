@@ -1,4 +1,5 @@
 import io
+
 import random
 import numpy as np
 import pandas as pd
@@ -112,7 +113,7 @@ data = {
         "1960-01-01",
     ],
 }
-memory_state_df = pd.DataFrame(data)
+memory_state_df: pd.DataFrame = pd.DataFrame(data)
 con.execute("CREATE TABLE IF NOT EXISTS memory_state AS SELECT * FROM memory_state_df")
 
 
@@ -125,7 +126,7 @@ orange juice,2.5
 Expresso,2
 Tea,3
 """
-beverages = pd.read_csv(io.StringIO(csv))
+beverages: pd.DataFrame = pd.read_csv(io.StringIO(csv))
 con.execute("CREATE TABLE IF NOT EXISTS beverages AS SELECT * FROM beverages")
 
 csv2 = """
@@ -134,7 +135,7 @@ cookie juice,2.5
 chocolatine,2
 muffin,3
 """
-food_items = pd.read_csv(io.StringIO(csv2))
+food_items: pd.DataFrame = pd.read_csv(io.StringIO(csv2))
 con.execute("CREATE TABLE IF NOT EXISTS food_items AS SELECT * FROM food_items")
 
 
@@ -145,7 +146,7 @@ M
 L
 XL
 """
-sizes = pd.read_csv(io.StringIO(sizes))
+sizes: pd.DataFrame = pd.read_csv(io.StringIO(sizes))
 con.execute("CREATE TABLE IF NOT EXISTS sizes AS SELECT * FROM sizes")
 
 trademarks = """
@@ -155,7 +156,7 @@ Asphalte
 Abercrombie
 Lewis
 """
-trademarks = pd.read_csv(io.StringIO(trademarks))
+trademarks: pd.DataFrame = pd.read_csv(io.StringIO(trademarks))
 con.execute("CREATE TABLE IF NOT EXISTS trademarks AS SELECT * FROM trademarks")
 
 
@@ -167,7 +168,7 @@ hour
 11
 12
 """
-hours = pd.read_csv(io.StringIO(hours))
+hours: pd.DataFrame = pd.read_csv(io.StringIO(hours))
 con.execute("CREATE TABLE IF NOT EXISTS hours AS SELECT * FROM hours")
 
 
@@ -178,7 +179,7 @@ quarter
 30
 45
 """
-quarters = pd.read_csv(io.StringIO(quarters))
+quarters: pd.DataFrame = pd.read_csv(io.StringIO(quarters))
 con.execute("CREATE TABLE IF NOT EXISTS quarters AS SELECT * FROM quarters")
 
 # ------------------------------------------------------------
@@ -190,7 +191,7 @@ salary,employee_id
 2500,2
 2200,3
 """
-salaries = pd.read_csv(io.StringIO(salaries))
+salaries: pd.DataFrame = pd.read_csv(io.StringIO(salaries))
 con.execute("CREATE TABLE IF NOT EXISTS salaries AS SELECT * FROM salaries")
 
 seniorities = """
@@ -198,7 +199,7 @@ employee_id,seniority
 1,2ans
 2,4ans
 """
-seniorities = pd.read_csv(io.StringIO(seniorities))
+seniorities: pd.DataFrame = pd.read_csv(io.StringIO(seniorities))
 con.execute("CREATE TABLE IF NOT EXISTS seniorities AS SELECT * FROM seniorities")
 
 
@@ -206,7 +207,7 @@ con.execute("CREATE TABLE IF NOT EXISTS seniorities AS SELECT * FROM seniorities
 # LEFT JOIN EXERCISES
 # ------------------------------------------------------------
 orders_data = {"order_id": [1, 2, 3, 4, 5], "customer_id": [101, 102, 103, 104, 105]}
-df_orders = pd.DataFrame(orders_data)
+df_orders: pd.DataFrame = pd.DataFrame(orders_data)
 con.execute("CREATE TABLE IF NOT EXISTS orders AS SELECT * FROM df_orders")
 
 customers_data = {
@@ -220,7 +221,7 @@ customers_data = {
         "David",
     ],
 }
-df_customers = pd.DataFrame(customers_data)
+df_customers: pd.DataFrame = pd.DataFrame(customers_data)
 con.execute("CREATE TABLE IF NOT EXISTS customers AS SELECT * FROM df_customers")
 
 products_data = {
@@ -228,7 +229,7 @@ products_data = {
     "product_name": ["Laptop", "Ipad", "Livre", "Petitos"],
     "product_price": [800, 400, 30, 2],
 }
-df_products = pd.DataFrame(products_data)
+df_products: pd.DataFrame = pd.DataFrame(products_data)
 con.execute("CREATE TABLE IF NOT EXISTS products AS SELECT * FROM df_products")
 
 order_details_data = {
@@ -236,7 +237,7 @@ order_details_data = {
     "product_id": [102, 104, 101, 103, 105],
     "quantity": [2, 1, 3, 2, 1],
 }
-df_order_details = pd.DataFrame(order_details_data)
+df_order_details: pd.DataFrame = pd.DataFrame(order_details_data)
 con.execute(
     "CREATE TABLE IF NOT EXISTS order_details AS SELECT * FROM df_order_details"
 )
@@ -249,18 +250,18 @@ customers_data = {
     "customer_id": [11, 12, 13, 14, 15],
     "customer_name": ["Zeinaba", "Tancrède", "Israel", "Kaouter", "Alan"],
 }
-customers_data = pd.DataFrame(customers_data)
+customers_data: pd.DataFrame = pd.DataFrame(customers_data)
 con.execute("CREATE TABLE IF NOT EXISTS df_customers AS SELECT * FROM customers_data")
 
 stores_data = {"store_id": [1, 2, 3, 4], "customer_id": [11, 12, 13, 15]}
-stores_data = pd.DataFrame(stores_data)
+stores_data: pd.DataFrame = pd.DataFrame(stores_data)
 con.execute("CREATE TABLE IF NOT EXISTS df_stores AS SELECT * FROM stores_data")
 
 store_products_data = {
     "store_id": [1, 1, 1, 2, 2, 3, 4],
     "product_id": [101, 103, 105, 101, 103, 104, 105],
 }
-store_products_data = pd.DataFrame(store_products_data)
+store_products_data: pd.DataFrame = pd.DataFrame(store_products_data)
 con.execute(
     "CREATE TABLE IF NOT EXISTS df_store_products AS SELECT * FROM store_products_data"
 )
@@ -276,7 +277,7 @@ products_data = {
     "product_name": p_names,
     "product_price": [3, 800, 400, 30],
 }
-products_data = pd.DataFrame(products_data)
+products_data: pd.DataFrame = pd.DataFrame(products_data)
 con.execute("CREATE TABLE IF NOT EXISTS df_products AS SELECT * FROM products_data")
 
 # ------------------------------------------------------------
@@ -287,7 +288,7 @@ employees = {
     "employee_name": ["Sophie", "Sylvie", "Daniel", "Kaouter", "David"],
     "manager_id": [13, None, 12, 13, 11],
 }
-employees = pd.DataFrame(employees)
+employees: pd.DataFrame = pd.DataFrame(employees)
 con.execute("CREATE TABLE IF NOT EXISTS employees AS SELECT * FROM employees")
 
 
@@ -296,7 +297,7 @@ sales = {
     "customer_id": random.choices([11, 12, 13, 14, 15, 11, 12, 13, 14], k=88),
 }
 
-sales = pd.DataFrame(sales)
+sales: pd.DataFrame = pd.DataFrame(sales)
 sales["date"] = [d // 3 + 1 for d in range(1, 89)]
 con.execute("CREATE TABLE IF NOT EXISTS sales AS SELECT * FROM sales")
 
@@ -304,7 +305,7 @@ con.execute("CREATE TABLE IF NOT EXISTS sales AS SELECT * FROM sales")
 # GROUP BY EXERCISES
 # ------------------------------------------------------------
 dates = [f"2023-08-{str(x).zfill(2)}" for x in range(7, 21)]
-ventes_immo_df = pd.DataFrame(
+ventes_immo_df: pd.DataFrame = pd.DataFrame(
     [
         [0, "vieux_lille", 460000],
         [1, "vieux_lille", 430000],
@@ -367,7 +368,7 @@ orders_df = {
     ],
     "order_amount": [120, 450, 800, 60, 1500],
 }
-orders_df = pd.DataFrame(orders_df)
+orders_df: pd.DataFrame = pd.DataFrame(orders_df)
 
 con.execute("CREATE TABLE IF NOT EXISTS orders_df AS SELECT * FROM orders_df")
 
@@ -426,7 +427,7 @@ salaires_df = {
     ],
 }
 
-salaires_df = pd.DataFrame(salaires_df)
+salaires_df: pd.DataFrame = pd.DataFrame(salaires_df)
 con.execute("CREATE TABLE IF NOT EXISTS salaires AS SELECT * FROM salaires_df")
 
 
@@ -438,7 +439,7 @@ discount_df = {
     "discount_code": [None, "DISCOUNT10", "DISCOUNT20", None, None, "UNKNOWN"],
 }
 
-discount_df = pd.DataFrame(discount_df)
+discount_df: pd.DataFrame = pd.DataFrame(discount_df)
 con.execute("CREATE TABLE IF NOT EXISTS discount AS SELECT * FROM discount_df")
 
 
@@ -476,7 +477,7 @@ redbull_df = {
     ],
     "amount": [45, 60, 60, 45, 100, 140, 190, 170, 55, 70, 20, 45],
 }
-redbull_df = pd.DataFrame(redbull_df)
+redbull_df: pd.DataFrame = pd.DataFrame(redbull_df)
 con.execute("CREATE TABLE IF NOT EXISTS redbull AS SELECT * FROM redbull_df")
 
 
@@ -487,7 +488,7 @@ df_pop = {
     + [910000, 920000, 930000, 940000, 900000]
     + [810000, 820000, 830000, 840000, 950000],
 }
-df_pop = pd.DataFrame(df_pop)
+df_pop: pd.DataFrame = pd.DataFrame(df_pop)
 con.execute("CREATE TABLE IF NOT EXISTS datapop AS SELECT * FROM df_pop")
 
 
@@ -535,7 +536,7 @@ for _ in range(num_samples):
     annee_data.append(random.choice(annee))
 
 # Create a DataFrame to store the dataset
-sante_df = pd.DataFrame(
+sante_df: pd.DataFrame = pd.DataFrame(
     {
         "type_contrat": contrats_data,
         "sexe": sexe_data,

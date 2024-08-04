@@ -5,29 +5,10 @@ import duckdb
 import pandas as pd
 import streamlit as st
 
-CSV = """
-beverage, price
-orange juice, 2.5
-Expresso, 2
-Tea, 3
-"""
-beverages: pd.DataFrame = pd.read_csv(io.StringIO(CSV))
-
-CSV2 = """
-food_item, food_price
-cookie juice, 2.5
-chocolatine, 2
-muffin, 3
-"""
-food_items: pd.DataFrame = pd.read_csv(io.StringIO(CSV2))
-
-
-ANSWER = """
-SELECT * FROM beverages
-CROSS JOIN food_items
-"""
-
-solution_df: pd.DataFrame = duckdb.sql(ANSWER).df()
+# --------------------- #
+# Récupérer les données #
+# --------------------- #
+con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
 
 
 # ------------------ #
@@ -37,47 +18,62 @@ st.title(":sunglasses: SQLingo :sunglasses:")
 
 
 with st.sidebar:
-    option = st.selectbox(
+    theme = st.selectbox(
         "Que voulez-vous réviser ?",
-        ("Joins", "Groupby", "Windows Functions"),
+        (
+            "cross_joins",
+            "inner_joins",
+            "left_joins",
+            "full_outer_joins",
+            "self_joins",
+            "group_by",
+            "case_when",
+            "grouping_set",
+        ),
         index=None,
         placeholder="Sélectionner un thème",
     )
-    st.write("Vous avez sélectionné : ", option)
-
+    st.write("Vous avez sélectionné : ", theme)
+    exercise = con.execute(f"SELECT * FROM memory_state where theme = '{theme}'").df()
+    if not exercise.empty :
+        st.write(exercise)
+    elif exercise.empty :
+        st.write('Il faut sélectionner un thème')
+    else :
+        st.write("Pas d'exercice disponibles pour le thème sélectionné")
 
 query = st.text_area(label="Saisir votre requête SQL :", key="user_input")
 
 
-if query:
-    result = duckdb.sql(query).df()
-    st.dataframe(result)
+# if query:
+#     result = duckdb.sql(query).df()
+#     st.dataframe(result)
 
-    # Comparer le nombre de colonnes des deux dataframes
-    if len(result.columns) != len(solution_df.columns):
-        st.write("Il manque des colonnes à votre requête")
+#     # Comparer le nombre de colonnes des deux dataframes
+#     if len(result.columns) != len(solution_df.columns):
+#         st.write("Il manque des colonnes à votre requête")
 
-    try:
-        result = result[solution_df.columns]
-        if st.dataframe(result.compare(solution_df)):
-            st.dataframe(solution_df)
-    except KeyError as e:
-        st.write("Il manque des colonnes à votre requête")
+#     try:
+#         result = result[solution_df.columns]
+#         if st.dataframe(result.compare(solution_df)):
+#             st.dataframe(solution_df)
+#     except KeyError as e:
+#         st.write("Il manque des colonnes à votre requête")
 
-    # Comparer le nomnbre de lignes des deux dataframes
-    n_lines_difference = result.shape[0] - solution_df.shape[0]
-    if n_lines_difference != 0:
-        st.write(
-            f"Votre requête a {n_lines_difference} lignes différentes de la solution"
-        )
+#     # Comparer le nomnbre de lignes des deux dataframes
+#     n_lines_difference = result.shape[0] - solution_df.shape[0]
+#     if n_lines_difference != 0:
+#         st.write(
+#             f"Votre requête a {n_lines_difference} lignes différentes de la solution"
+#         )
 
-    # Comparer les valeurs dans le dataframe
-
-
-tab2, tab3 = st.tabs(["Tables", "Solution"])
-with tab2:
-    st.dataframe(beverages)
+#     # Comparer les valeurs dans le dataframe
 
 
-with tab3:
-    st.dataframe(solution_df)
+# tab2, tab3 = st.tabs(["Tables", "Solution"])
+# with tab2:
+#     st.dataframe(beverages)
+
+
+# with tab3:
+#     st.dataframe(solution_df)
