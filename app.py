@@ -35,11 +35,11 @@ with st.sidebar:
     )
     st.write("Vous avez sélectionné : ", theme)
     exercise = con.execute(f"SELECT * FROM memory_state where theme = '{theme}'").df()
-    if not exercise.empty :
+    if not exercise.empty:
         st.write(exercise)
-    elif exercise.empty :
-        st.write('Il faut sélectionner un thème')
-    else :
+    elif exercise.empty:
+        st.write("Il faut sélectionner un thème")
+    else:
         st.write("Pas d'exercice disponibles pour le thème sélectionné")
 
 query = st.text_area(label="Saisir votre requête SQL :", key="user_input")
@@ -69,11 +69,12 @@ if query:
 tab2, tab3 = st.tabs(["Tables", "Solution"])
 with tab2:
     exercise_tables = exercise.loc[0, "tables"]
-    for table in exercise_tables :
+    for table in exercise_tables:
         st.write(f"Table : {table}")
         df_tables = con.execute(f"SELECT * from '{table}'").df()
         st.dataframe(df_tables)
 
 
-# with tab3:
-#     st.dataframe(solution_df)
+with tab3:
+    answer_str = exercise.loc[0, "answer"]
+    st.dataframe(answer_str)

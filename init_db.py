@@ -112,6 +112,7 @@ data = {
         "1970-01-01",
         "1960-01-01",
     ],
+    "answer":["solution_1.sql"]
 }
 memory_state_df: pd.DataFrame = pd.DataFrame(data)
 con.execute("CREATE TABLE IF NOT EXISTS memory_state AS SELECT * FROM memory_state_df")
