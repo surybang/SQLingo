@@ -24,9 +24,9 @@ if "exercises_sql_tables.duckdb" not in os.listdir("data"):
 con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
 memory_df = con.execute("SELECT * FROM memory_state").df()
 
-# -------------------- 
-# Affichage de l'app 
-# -------------------- 
+# --------------------
+# Affichage de l'app
+# --------------------
 
 with st.sidebar:
 
@@ -60,6 +60,7 @@ with st.sidebar:
         key="theme_selectbox",
     )
     # st.write(f"Vous avez sélectionné :{theme}")
+
     # Sélection de l'exercice en fonction du thème sélectionné
     filtered_exercises = memory_df[memory_df["theme"] == theme][
         "exercise_name"
@@ -71,6 +72,7 @@ with st.sidebar:
         key="exercises_selectbox",
     )
 
+    # Récupérer l'exercice
     exercise = con.execute(
         f"SELECT * FROM memory_state where theme = '{theme}' and exercise_name = '{exercises_lst}'"
     ).df()
@@ -82,30 +84,40 @@ with st.sidebar:
     else:
         st.write("Pas d'exercice disponibles pour le thème sélectionné")
 
+    # Récupérer la solution de l'exercice
+    answer_str: str = exercise.loc[0, "answer"]
+    try:
+        with open(f"answers/{theme}/{answer_str}", "r") as f:
+            answer: str = f.read()
+            solution_df: pd.DataFrame = con.execute(answer).df()
+
+    except FileNotFoundError:
+        st.write("Fichier de réponse non trouvé")
 
 st.subheader("Question :")
-query = st.text_area(label="Saisir votre requête SQL :", key="user_input")
+query: str = st.text_area(label="Saisir votre requête SQL :", key="user_input")
 
 
 if query:
-    result = con.execute(query).df()
+    result: pd.DataFrame = con.execute(query).df()
     st.dataframe(result)
 
-    # try:
-    #     result = result[solution_df.columns]
-    #     if st.dataframe(result.compare(solution_df)):
-    #         st.dataframe(solution_df)
-    # except KeyError as e:
-    #     st.write("Il manque des colonnes à votre requête")
+    try:
+        result = result[solution_df.columns]
+        check_valid = result.compare(solution_df)
+        if check_valid.empty:
+            st.balloons()
+        else :
+            st.write("Il y a une différences dans votre requête")
+    except KeyError as e:
+        st.write("Il manque des colonnes à votre requête")
 
-    # # Comparer le nomnbre de lignes des deux dataframes
-    # n_lines_difference = result.shape[0] - solution_df.shape[0]
-    # if n_lines_difference != 0:
-    #     st.write(
-    #         f"Votre requête a {n_lines_difference} lignes différentes de la solution"
-    #     )
-
-#     # Comparer les valeurs dans le dataframe
+    # Comparer le nomnbre de lignes des deux dataframes
+    n_lines_difference = result.shape[0] - solution_df.shape[0]
+    if n_lines_difference != 0:
+        st.write(
+            f"Votre requête a {n_lines_difference} lignes différentes de la solution"
+        )
 
 
 tab1, tab2 = st.tabs(["Tables", "Solution"])
@@ -120,12 +132,5 @@ with tab1:
         cols[i].table(df_table)
 
 with tab2:
-    answer_str: str = exercise.loc[0, "answer"]
-    try:
-        with open(f"answers/{theme}/{answer_str}", "r") as f:
-            answer = f.read()
-            st.write(answer)
-            response_df = con.execute(answer).df()
-            st.dataframe(response_df)
-    except FileNotFoundError:
-        st.write("Fichier de réponse non trouvé")
+    st.write(answer)
+    st.dataframe(solution_df)
