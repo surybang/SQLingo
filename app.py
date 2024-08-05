@@ -1,10 +1,52 @@
 # pylint: disable=missing-module-docstring
 import os
 import subprocess
+import logging 
 
 import duckdb
 import pandas as pd
 import streamlit as st
+
+
+# ------------------------------------------------------------
+# SETUP
+# ------------------------------------------------------------
+# Création du dossier data
+if "data" not in os.listdir():
+    print("creating folder data")
+    logging.error(os.listdir())
+    logging.error("creating folder data")
+    os.mkdir("data")
+
+# On lance init_db.py pour créer la BDD
+if "exercises_sql_tables.duckdb" not in os.listdir("data"):
+    #exec(open("init_db.py").read())
+    subprocess.run(["python", "init_db.py"])
+
+con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
+
+# ------------------------------------------------------------
+# CONFIG PAGE
+# ------------------------------------------------------------
+st.set_page_config(
+    page_title="SQL_SRS",
+    page_icon="🎯",
+    layout="wide",
+)
+
+st.markdown(
+    """
+                <style>
+                .text-font {
+                    font-size:20px;
+                    text-align: justify;
+                }
+                </style>
+                """,
+    unsafe_allow_html=True,
+)
+
+
 
 # ------------------------------------------------------------
 # SETUP
@@ -73,9 +115,14 @@ with st.sidebar:
     )
 
     # Récupérer l'exercice
-    exercise = con.execute(
-        f"SELECT * FROM memory_state where theme = '{theme}' and exercise_name = '{exercises_lst}'"
-    ).df()
+    exercise = (
+        con.execute(
+            f"SELECT * FROM memory_state where theme = '{theme}' and exercise_name = '{exercises_lst}'"
+        )
+        .df()
+        .sort_values("last_reviewed")
+        .reset_index(drop=True)
+    )
     # st.write('Vous avez sélectionné', exercise)
     if not exercise.empty:
         st.dataframe(exercise.iloc[:, :-1])  # On affiche pas la colonne réponse
@@ -107,7 +154,7 @@ if query:
         check_valid = result.compare(solution_df)
         if check_valid.empty:
             st.balloons()
-        else :
+        else:
             st.write("Il y a une différences dans votre requête")
     except KeyError as e:
         st.write("Il manque des colonnes à votre requête")
