@@ -1,12 +1,13 @@
 # pylint: disable=missing-module-docstring
 import os
+import sys
 import subprocess
-import logging 
+import logging
 
 import duckdb
 import pandas as pd
 import streamlit as st
-
+import functions
 
 # ------------------------------------------------------------
 # SETUP
@@ -20,8 +21,8 @@ if "data" not in os.listdir():
 
 # On lance init_db.py pour créer la BDD
 if "exercises_sql_tables.duckdb" not in os.listdir("data"):
-    #exec(open("init_db.py").read())
-    subprocess.run(["python", "init_db.py"])
+    # exec(open("init_db.py").read())
+    subprocess.run([sys.executable, "init_db.py"])
 
 con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
 
@@ -46,8 +47,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-
-
 # ------------------------------------------------------------
 # SETUP
 # ------------------------------------------------------------
@@ -64,11 +63,18 @@ if "exercises_sql_tables.duckdb" not in os.listdir("data"):
         print(result.stderr)
 
 con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
-memory_df = con.execute("SELECT * FROM memory_state").df()
+memory_df = (
+    con.execute("SELECT * FROM memory_state")
+    .df()
+    .sort_values("last_reviewed")
+    .reset_index(drop=True)
+)
+
 
 # --------------------
 # Affichage de l'app
 # --------------------
+
 
 with st.sidebar:
 
@@ -95,85 +101,25 @@ with st.sidebar:
     )
 
     # Sélection du thème
-    theme = st.selectbox(
-        "Sélectionner un thème",
-        options=memory_df["theme"].unique(),
-        index=0,
-        key="theme_selectbox",
-    )
-    # st.write(f"Vous avez sélectionné :{theme}")
+    theme = functions.get_selector_themes(memory_df)
 
     # Sélection de l'exercice en fonction du thème sélectionné
-    filtered_exercises = memory_df[memory_df["theme"] == theme][
-        "exercise_name"
-    ].to_list()
-    exercises_lst = st.selectbox(
-        "Sélectionner un exercice",
-        options=filtered_exercises,
-        index=0,
-        key="exercises_selectbox",
-    )
+    exercises_lst = functions.get_selector_exercises(memory_df, theme)
 
     # Récupérer l'exercice
-    exercise = (
-        con.execute(
-            f"SELECT * FROM memory_state where theme = '{theme}' and exercise_name = '{exercises_lst}'"
-        )
-        .df()
-        .sort_values("last_reviewed")
-        .reset_index(drop=True)
-    )
-    # st.write('Vous avez sélectionné', exercise)
-    if not exercise.empty:
-        st.dataframe(exercise.iloc[:, :-1])  # On affiche pas la colonne réponse
-    elif exercise.empty:
-        st.write("Il faut sélectionner un thème")
-    else:
-        st.write("Pas d'exercice disponibles pour le thème sélectionné")
-
-    # Récupérer la solution de l'exercice
-    answer_str: str = exercise.loc[0, "answer"]
-    try:
-        with open(f"answers/{theme}/{answer_str}", "r") as f:
-            answer: str = f.read()
-            solution_df: pd.DataFrame = con.execute(answer).df()
-
-    except FileNotFoundError:
-        st.write("Fichier de réponse non trouvé")
+    exercise, answer_str, answer, solution_df = functions.get_selected_exercise(con, theme, exercises_lst)
 
 
 # Affichage des questions dynamiques
 st.subheader("Question :")
+functions.get_questions(theme, answer_str)
 
-try:
-    with open(f"questions/{theme}/{answer_str[:-4]}.txt", "r") as f:
-        question: str = f.read()
-        st.write(question)
-except FileNotFoundError:
-    st.write('Fichier question absent')
+# Saisir la requête
 query: str = st.text_area(label="Saisir votre requête SQL :", key="user_input")
 
-
+# Check de la requête
 if query:
-    result: pd.DataFrame = con.execute(query).df()
-    st.dataframe(result)
-
-    try:
-        result = result[solution_df.columns]
-        check_valid = result.compare(solution_df)
-        if check_valid.empty:
-            st.balloons()
-        else:
-            st.write("Il y a une différences dans votre requête")
-    except KeyError as e:
-        st.write("Il manque des colonnes à votre requête")
-
-    # Comparer le nomnbre de lignes des deux dataframes
-    n_lines_difference = result.shape[0] - solution_df.shape[0]
-    if n_lines_difference != 0:
-        st.write(
-            f"Votre requête a {n_lines_difference} lignes différentes de la solution"
-        )
+    functions.check_users_solution(con, solution_df, query)
 
 
 tab1, tab2 = st.tabs(["Tables", "Solution"])
