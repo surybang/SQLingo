@@ -70,9 +70,13 @@ query = st.text_area(label="Saisir votre requête SQL :", key="user_input")
 #     # Comparer les valeurs dans le dataframe
 
 
-# tab2, tab3 = st.tabs(["Tables", "Solution"])
-# with tab2:
-#     st.dataframe(beverages)
+tab2, tab3 = st.tabs(["Tables", "Solution"])
+with tab2:
+    st.write(exercise.loc[0, "tables"])
+    exercise_tables = exercise.loc[0, "tables"]
+    for table in exercise_tables :
+        print(table)
+    # st.dataframe(beverages)
 
 
 # with tab3:
