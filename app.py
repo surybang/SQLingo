@@ -30,7 +30,7 @@ con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=Fals
 # ------------------------------------------------------------
 st.set_page_config(
     page_title="SQL_SRS",
-    page_icon="🎯",
+    page_icon="😎",
     layout="wide",
 )
 
@@ -141,7 +141,16 @@ with st.sidebar:
     except FileNotFoundError:
         st.write("Fichier de réponse non trouvé")
 
+
+# Affichage des questions dynamiques
 st.subheader("Question :")
+
+try:
+    with open(f"questions/{theme}/{answer_str[:-4]}.txt", "r") as f:
+        question: str = f.read()
+        st.write(question)
+except FileNotFoundError:
+    st.write('Fichier question absent')
 query: str = st.text_area(label="Saisir votre requête SQL :", key="user_input")
 
 
