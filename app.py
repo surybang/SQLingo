@@ -45,38 +45,34 @@ with st.sidebar:
 query = st.text_area(label="Saisir votre requête SQL :", key="user_input")
 
 
-# if query:
-#     result = duckdb.sql(query).df()
-#     st.dataframe(result)
+if query:
+    result = con.execute(query).df()
+    st.dataframe(result)
 
-#     # Comparer le nombre de colonnes des deux dataframes
-#     if len(result.columns) != len(solution_df.columns):
-#         st.write("Il manque des colonnes à votre requête")
+    # try:
+    #     result = result[solution_df.columns]
+    #     if st.dataframe(result.compare(solution_df)):
+    #         st.dataframe(solution_df)
+    # except KeyError as e:
+    #     st.write("Il manque des colonnes à votre requête")
 
-#     try:
-#         result = result[solution_df.columns]
-#         if st.dataframe(result.compare(solution_df)):
-#             st.dataframe(solution_df)
-#     except KeyError as e:
-#         st.write("Il manque des colonnes à votre requête")
-
-#     # Comparer le nomnbre de lignes des deux dataframes
-#     n_lines_difference = result.shape[0] - solution_df.shape[0]
-#     if n_lines_difference != 0:
-#         st.write(
-#             f"Votre requête a {n_lines_difference} lignes différentes de la solution"
-#         )
+    # # Comparer le nomnbre de lignes des deux dataframes
+    # n_lines_difference = result.shape[0] - solution_df.shape[0]
+    # if n_lines_difference != 0:
+    #     st.write(
+    #         f"Votre requête a {n_lines_difference} lignes différentes de la solution"
+    #     )
 
 #     # Comparer les valeurs dans le dataframe
 
 
 tab2, tab3 = st.tabs(["Tables", "Solution"])
 with tab2:
-    st.write(exercise.loc[0, "tables"])
     exercise_tables = exercise.loc[0, "tables"]
     for table in exercise_tables :
-        print(table)
-    # st.dataframe(beverages)
+        st.write(f"Table : {table}")
+        df_tables = con.execute(f"SELECT * from '{table}'").df()
+        st.dataframe(df_tables)
 
 
 # with tab3:
