@@ -1,47 +1,79 @@
 # pylint: disable=missing-module-docstring
-import io
+import os
+import logging
+import subprocess
 
 import duckdb
 import pandas as pd
 import streamlit as st
 
-# --------------------- #
-# Récupérer les données #
-# --------------------- #
-con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
+# ------------------------------------------------------------
+# SETUP
+# ------------------------------------------------------------
 
+# Vérifier si le fichier 'exercises_sql_tables.duckdb' n'existe pas dans le répertoire 'data'
+if "exercises_sql_tables.duckdb" not in os.listdir("data"):
+    result = subprocess.run(["python", "init_db.py"], capture_output=True, text=True)
+
+    # Vérifier si le script s'est exécuté avec succès
+    if result.returncode == 0:
+        print("Initialisation de la base de données réussie.")
+    else:
+        print("Erreur lors de l'initialisation de la base de données.")
+        print(result.stderr)
+
+con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
+memory_df = con.execute("SELECT * FROM memory_state").df()
 
 # ------------------ #
 # Affichage de l'app #
 # ------------------ #
-st.title(":sunglasses: SQLingo :sunglasses:")
-
 
 with st.sidebar:
-    theme = st.selectbox(
-        "Que voulez-vous réviser ?",
-        (
-            "cross_joins",
-            "inner_joins",
-            "left_joins",
-            "full_outer_joins",
-            "self_joins",
-            "group_by",
-            "case_when",
-            "grouping_set",
-        ),
-        index=None,
-        placeholder="Sélectionner un thème",
+    st.markdown(
+        """
+    <style>
+    .st-emotion-cache-10oheav {
+        padding: 1rem 1rem !important;
+    }
+    </style>
+    """,
+        unsafe_allow_html=True,
     )
-    st.write("Vous avez sélectionné : ", theme)
-    exercise = con.execute(f"SELECT * FROM memory_state where theme = '{theme}'").df()
+    st.markdown(
+        """
+        <div style="margin-top: 0px ; text-align: center;">
+            <h1>😎 SQLingo 😎</h1>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Sélection du thème
+    theme = st.selectbox(
+        "Sélectionner un thème", options=memory_df["theme"].unique(), index=0
+    )
+
+    # Sélection de l'exercice en fonction du thème sélectionné
+    filtered_exercises = memory_df[memory_df["theme"] == theme][
+        "exercise_name"
+    ].to_list()
+    exercises_lst = st.selectbox(
+        "Sélectionner un exercice", options=filtered_exercises, index=0
+    )
+    # st.write("Vous avez sélectionné : ", theme)
+    exercise = con.execute(
+        f"SELECT * FROM memory_state where theme = '{theme}' and exercise_name = '{exercises_lst}'"
+    ).df()
     if not exercise.empty:
-        st.write(exercise)
+        st.dataframe(exercise.iloc[:, :-1])  # On affiche pas la colonne réponse
     elif exercise.empty:
         st.write("Il faut sélectionner un thème")
     else:
         st.write("Pas d'exercice disponibles pour le thème sélectionné")
 
+
+st.subheader('Question :')
 query = st.text_area(label="Saisir votre requête SQL :", key="user_input")
 
 
@@ -75,6 +107,7 @@ with tab2:
         st.dataframe(df_tables)
 
 
-with tab3:
-    answer_str = exercise.loc[0, "answer"]
-    st.dataframe(answer_str)
+# with tab3:
+#     answer_str = exercise.loc[0, "answer"]
+#     # with open(f"answers/{theme}/{}")
+#     st.dataframe(answer_str)

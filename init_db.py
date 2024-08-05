@@ -112,7 +112,31 @@ data = {
         "1970-01-01",
         "1960-01-01",
     ],
-    "answer":["solution_1.sql"]
+    "answer": [
+        "cross_joins_1.sql",
+        "cross_joins_2.sql",
+        "cross_joins_3.sql",
+        "inner_joins_1.sql",
+        "left_joins_1.sql",
+        "left_joins_2.sql",
+        "left_joins_3.sql",
+        "full_outer_joins_1.sql",
+        "self_joins_1.sql",
+        "self_joins_2.sql",
+        "group_by_1.sql",
+        "group_by_2.sql",
+        "group_by_3.sql",
+        "case_when_1.sql",
+        "case_when_2.sql",
+        "case_when_3.sql",
+        "case_when_4.sql",
+        "grouping_set_1.sql",
+        "grouping_set_2.sql",
+        "grouping_set_3.sql",
+        "grouping_set_4.sql",
+        "grouping_set_5.sql",
+        "grouping_set_6.sql",
+    ],
 }
 memory_state_df: pd.DataFrame = pd.DataFrame(data)
 con.execute("CREATE TABLE IF NOT EXISTS memory_state AS SELECT * FROM memory_state_df")
@@ -558,7 +582,7 @@ con.close()
 
 
 # if __name__ == "__main__":
-#    print(orders_df)
-#    #con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
-#    #print(con.execute("SELECT * FROM orders").df())
-#    #con.close()
+#     print(memory_state_df)
+# #    #con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
+# #    #print(con.execute("SELECT * FROM orders").df())
+# #    #con.close()
