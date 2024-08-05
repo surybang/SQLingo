@@ -1,0 +1,1 @@
+Trouver toutes les combinaisons possible de petits-déjeuner avec les tables à votre disposition.
