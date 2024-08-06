@@ -7,8 +7,15 @@ import logging
 import duckdb
 import pandas as pd
 import streamlit as st
+
 import functions
 from datetime import date
+import hmac
+
+# ------------------------------------------------------------
+# AUTHENT
+# ------------------------------------------------------------
+
 
 # ------------------------------------------------------------
 # SETUP
@@ -26,6 +33,7 @@ if "exercises_sql_tables.duckdb" not in os.listdir("data"):
     subprocess.run([sys.executable, "init_db.py"])
 
 con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
+memory_df = functions.query_memory_df(con)
 
 # ------------------------------------------------------------
 # CONFIG PAGE
@@ -53,23 +61,17 @@ st.markdown(
 # ------------------------------------------------------------
 
 # Vérifier si le fichier 'exercises_sql_tables.duckdb' n'existe pas dans le répertoire 'data'
-if "exercises_sql_tables.duckdb" not in os.listdir("data"):
-    result = subprocess.run(["python", "init_db.py"], capture_output=True, text=True)
+# if "exercises_sql_tables.duckdb" not in os.listdir("data"):
+#     result = subprocess.run(["python", "init_db.py"], capture_output=True, text=True)
 
-    # Vérifier si le script s'est exécuté avec succès
-    if result.returncode == 0:
-        print("Initialisation de la base de données réussie.")
-    else:
-        print("Erreur lors de l'initialisation de la base de données.")
-        print(result.stderr)
+#     # Vérifier si le script s'est exécuté avec succès
+#     if result.returncode == 0:
+#         print("Initialisation de la base de données réussie.")
+#     else:
+#         print("Erreur lors de l'initialisation de la base de données.")
+#         print(result.stderr)
 
-con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
-memory_df = (
-    con.execute("SELECT * FROM memory_state")
-    .df()
-    .sort_values("last_reviewed")
-    .reset_index(drop=True)
-)
+
 
 
 # --------------------
