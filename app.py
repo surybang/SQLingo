@@ -8,6 +8,7 @@ import duckdb
 import pandas as pd
 import streamlit as st
 import functions
+from datetime import date
 
 # ------------------------------------------------------------
 # SETUP
@@ -75,7 +76,6 @@ memory_df = (
 # Affichage de l'app
 # --------------------
 
-
 with st.sidebar:
 
     # Forcer le padding de la sidebar pour éviter l'espace blanc en haut
@@ -107,7 +107,9 @@ with st.sidebar:
     exercises_lst = functions.get_selector_exercises(memory_df, theme)
 
     # Récupérer l'exercice
-    exercise, answer_str, answer, solution_df = functions.get_selected_exercise(con, theme, exercises_lst)
+    exercise, answer_str, answer, solution_df = functions.get_selected_exercise(
+        con, theme, exercises_lst
+    )
 
 
 # Affichage des questions dynamiques
@@ -119,8 +121,17 @@ query: str = st.text_area(label="Saisir votre requête SQL :", key="user_input")
 
 # Check de la requête
 if query:
-    functions.check_users_solution(con, solution_df, query)
+    is_solution_correct = functions.check_users_solution(con, solution_df, query)
 
+    # si la solution est ok alors on met à jour la date "last_reviewed"
+    if is_solution_correct:
+        today = date.today().strftime("%Y-%m-%d")
+        exercise_name = exercise.loc[0, "exercise_name"]
+        update_query = f"UPDATE memory_state SET last_reviewed = ? WHERE exercise_name = ?"
+
+        with duckdb.connect('data/exercises_sql_tables.duckdb') as conn:
+            conn.execute(update_query, (today, exercise_name))
+            conn.close()
 
 tab1, tab2 = st.tabs(["Tables", "Solution"])
 
