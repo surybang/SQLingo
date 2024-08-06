@@ -1,9 +1,22 @@
 import pandas as pd
 import streamlit as st
-
+import duckdb
 # ------------------------------------------------------------
 # FUNCTIONS
 # ------------------------------------------------------------
+
+def query_memory_df(con):
+    with duckdb.connect(database="data/exercises_sql_tables.duckdb") as con:
+        memory_df = (
+            con.execute("SELECT * FROM memory_state")
+            .df()
+            .sort_values("last_reviewed")
+            .reset_index(drop=True)
+        )
+    
+    return memory_df
+
+
 def check_users_solution(con, solution_df: pd.DataFrame, user_query: str) -> bool:
     """
     Checks that user SQL query is correct by :
@@ -49,7 +62,7 @@ def check_users_solution(con, solution_df: pd.DataFrame, user_query: str) -> boo
 def get_selector_themes(memory_df : pd.DataFrame) -> str :
     """
     Function to get themes selected by the user
-    
+
     Args:
         memory_df (pd.DataFrame): the memory state df from the database
 
