@@ -4,7 +4,7 @@ import streamlit as st
 # ------------------------------------------------------------
 # FUNCTIONS
 # ------------------------------------------------------------
-def check_users_solution(con, solution_df: pd.DataFrame, user_query: str) -> None:
+def check_users_solution(con, solution_df: pd.DataFrame, user_query: str) -> bool:
     """
     Checks that user SQL query is correct by :
     1: checking the columns
@@ -13,27 +13,38 @@ def check_users_solution(con, solution_df: pd.DataFrame, user_query: str) -> Non
     :param solution_df: THE TRUTH
     :param user_query: string containing the query typed by the user 
 
-    returns : nothing 
+    returns : bool indicating wether the user's query matches the solution 
     """
-    result: pd.DataFrame = con.execute(user_query).df()
-    st.dataframe(result)
-
     try:
-        result = result[solution_df.columns]
-        check_valid = result.compare(solution_df)
-        if check_valid.empty:
-            st.balloons()
-        else:
-            st.write("Il y a une différences dans votre requête")
-    except KeyError as e:
-        st.write("Il manque des colonnes à votre requête")
+        # Exécute la requête utilisateur et récupère les résultats dans un DataFrame
+        result = con.execute(user_query).df()
+        st.dataframe(result)  # Affiche le résultat pour l'utilisateur
 
-    # Comparer le nomnbre de lignes des deux dataframes
-    n_lines_difference = result.shape[0] - solution_df.shape[0]
-    if n_lines_difference != 0:
-        st.write(
-            f"Votre requête a {n_lines_difference} lignes différentes de la solution"
-        )
+        # Vérifie si les colonnes correspondent et dans le bon ordre
+        if not result.columns.equals(solution_df.columns):
+            st.write("Les colonnes de votre requête ne correspondent pas exactement à celles de la solution.")
+            return False
+
+        # Vérifie si le nombre de lignes correspond
+        if result.shape[0] != solution_df.shape[0]:
+            st.write(f"Votre requête retourne un nombre de lignes différent de la solution attendue ({result.shape[0]} vs {solution_df.shape[0]}).")
+            return False
+
+        # Compare les valeurs des deux DataFrames
+        if not result.equals(solution_df):
+            differences = result.compare(solution_df)
+            st.write(f"Il y a des différences dans les valeurs de votre requête : {differences}")
+            return False
+
+        st.balloons()  # Affiche des ballons si la requête est correcte
+        return True
+
+    except Exception as e:
+        # Capture et affiche toute exception survenue lors de l'exécution de la requête ou de la comparaison
+        st.write(f"Erreur lors de l'exécution ou de la comparaison des requêtes : {e}")
+        return False
+
+ 
 
 def get_selector_themes(memory_df):
     theme = st.selectbox(
