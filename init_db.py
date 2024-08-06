@@ -574,6 +574,18 @@ sante_df: pd.DataFrame = pd.DataFrame(
 con.execute("CREATE TABLE IF NOT EXISTS sante AS SELECT * FROM sante_df")
 
 
+# Create table for users
+con.execute("CREATE SEQUENCE IF NOT EXISTS user_id_seq")
+con.execute(
+    """
+            CREATE TABLE IF NOT EXISTS users (
+            id INT DEFAULT nextval('user_id_seq') PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+            )
+"""
+)
+
 con.close()
 
 
