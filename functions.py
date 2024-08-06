@@ -46,7 +46,16 @@ def check_users_solution(con, solution_df: pd.DataFrame, user_query: str) -> boo
 
  
 
-def get_selector_themes(memory_df):
+def get_selector_themes(memory_df : pd.DataFrame) -> str :
+    """
+    Function to get themes selected by the user
+    
+    Args:
+        memory_df (pd.DataFrame): the memory state df from the database
+
+    Returns:
+        str: the theme selected
+    """
     theme = st.selectbox(
         "Sélectionner un thème",
         options=memory_df["theme"].unique(),
