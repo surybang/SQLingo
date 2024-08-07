@@ -7,10 +7,11 @@ import bcrypt
 # FUNCTIONS
 # ------------------------------------------------------------
 
+
 def hash_password(password: str) -> bytes:
     """Hache un mot de passe en utilisant bcrypt.
 
-    Cette fonction prend un mot de passe en entrée, l'encode en bytes, 
+    Cette fonction prend un mot de passe en entrée, l'encode en bytes,
     génère un sel aléatoire, et retourne le mdp haché.
 
     Args:
@@ -22,10 +23,11 @@ def hash_password(password: str) -> bytes:
 
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 
+
 def check_password(hashed_password: bytes, user_password: str) -> bool:
     """Vérifie que le mot de passe est valide.
 
-    Cette fonction prend un mot de passe haché (généré par hash_password) et un mot de passe 
+    Cette fonction prend un mot de passe haché (généré par hash_password) et un mot de passe
     en clair, puis vérifie que le hash du mot de passe en clair correspond au mot de passe haché.
 
     Args:
@@ -36,6 +38,7 @@ def check_password(hashed_password: bytes, user_password: str) -> bool:
         bool: True si le mot de passe est correct, False sinon
     """
     return bcrypt.checkpw(user_password.encode(), hashed_password)
+
 
 def signup_user(username: str, password: str) -> bool:
     """Inscrit un nouvel utilisateur dans la base de données.
@@ -56,21 +59,27 @@ def signup_user(username: str, password: str) -> bool:
     try:
         with duckdb.connect("data/exercises_sql_tables.duckdb") as con:
             # Vérifier si l'utilisateur existe déjà
-            result = con.execute("SELECT COUNT(*) FROM users WHERE username = ?", [username]).fetchone()
+            result = con.execute(
+                "SELECT COUNT(*) FROM users WHERE username = ?", [username]
+            ).fetchone()
             if result[0] > 0:
                 print(f"L'utilisateur '{username}' existe déjà.")
                 return False
-            
+
             # Si l'utilisateur n'existe pas, procéder à l'inscription
             hashed_password = hash_password(password)
-            con.execute("""
+            con.execute(
+                """
                 INSERT INTO users (username, password) VALUES (?, ?)
-            """, (username, hashed_password))
+            """,
+                (username, hashed_password),
+            )
             print(f"L'utilisateur '{username}' a été inscrit avec succès.")
             return True
     except duckdb.Error as e:
         print(f"Une erreur s'est produite lors de l'inscription : {e}")
         raise
+
 
 def login_user(username: str, password: str) -> bool:
     """Vérifie les informations de connexion de l'utilisateur.
@@ -90,9 +99,12 @@ def login_user(username: str, password: str) -> bool:
     """
     try:
         with duckdb.connect(database="data/exercises_sql_tables.duckdb") as con:
-            result = con.execute('''
+            result = con.execute(
+                """
                 SELECT password FROM users WHERE username = ?
-            ''', (username,)).fetchone()
+            """,
+                (username,),
+            ).fetchone()
 
             if result:
                 hashed_password = result[0].encode()
@@ -102,9 +114,10 @@ def login_user(username: str, password: str) -> bool:
         print(f"Erreur lors de la vérification des informations de connexion : {e}")
         raise
 
-def user_auth():
+
+def user_auth() -> None :
     """Affiche le formulaire d'inscription ou de connexion et gère l'authentification de l'utilisateur."""
-    
+
     # Vérifier si l'utilisateur est déjà connecté
     if st.session_state.get("logged_in", False):
         # st.write(f"Vous êtes connecté en tant que {st.session_state['username']}")
@@ -121,27 +134,37 @@ def user_auth():
     if st.session_state["signup"]:
         st.title("Inscription")
         signup_username = st.text_input("Nom d'utilisateur", key="signup_username")
-        signup_password = st.text_input("Mot de passe", type="password", key="signup_password")
-        signup_password_confirm = st.text_input("Confirmer le mot de passe", type="password", key="signup_password_confirm")
-        
+        signup_password = st.text_input(
+            "Mot de passe", type="password", key="signup_password"
+        )
+        signup_password_confirm = st.text_input(
+            "Confirmer le mot de passe", type="password", key="signup_password_confirm"
+        )
+
         if st.button("S'inscrire"):
             if not signup_username or not signup_password:
                 st.error("Veuillez remplir tous les champs.")
             elif signup_password != signup_password_confirm:
                 st.error("Les mots de passe ne correspondent pas.")
             elif signup_user(signup_username, signup_password):
-                st.success("Inscription réussie. Vous pouvez maintenant vous connecter.")
+                st.success(
+                    "Inscription réussie. Vous pouvez maintenant vous connecter."
+                )
                 st.session_state["signup"] = False
             else:
-                st.error("L'utilisateur existe déjà. Essayez un autre nom d'utilisateur.")
-        
+                st.error(
+                    "L'utilisateur existe déjà. Essayez un autre nom d'utilisateur."
+                )
+
         if st.button("Retour à la connexion"):
             st.session_state["signup"] = False
     else:
         st.title("Connexion")
         login_username = st.text_input("Nom d'utilisateur", key="login_username")
-        login_password = st.text_input("Mot de passe", type="password", key="login_password")
-        
+        login_password = st.text_input(
+            "Mot de passe", type="password", key="login_password"
+        )
+
         if st.button("Se connecter"):
             if not login_username or not login_password:
                 st.error("Veuillez remplir tous les champs.")
@@ -152,13 +175,12 @@ def user_auth():
                 st.rerun()
             else:
                 st.error("Nom d'utilisateur ou mot de passe incorrect")
-        
+
         if st.button("S'inscrire"):
             st.session_state["signup"] = True
 
 
-
-def query_memory_df(con):
+def query_memory_df(con) -> pd.DataFrame :
     with duckdb.connect(database="data/exercises_sql_tables.duckdb") as con:
         memory_df = (
             con.execute("SELECT * FROM memory_state")
@@ -166,7 +188,7 @@ def query_memory_df(con):
             .sort_values("last_reviewed")
             .reset_index(drop=True)
         )
-    
+
     return memory_df
 
 
@@ -177,9 +199,9 @@ def check_users_solution(con, solution_df: pd.DataFrame, user_query: str) -> boo
     2: checking the values
     :param con: connection duckdb
     :param solution_df: THE TRUTH
-    :param user_query: string containing the query typed by the user 
+    :param user_query: string containing the query typed by the user
 
-    returns : bool indicating wether the user's query matches the solution 
+    returns : bool indicating wether the user's query matches the solution
     """
     try:
         # Exécute la requête utilisateur et récupère les résultats dans un DataFrame
@@ -188,18 +210,24 @@ def check_users_solution(con, solution_df: pd.DataFrame, user_query: str) -> boo
 
         # Vérifie si les colonnes correspondent et dans le bon ordre
         if not result.columns.equals(solution_df.columns):
-            st.write("Les colonnes de votre requête ne correspondent pas exactement à celles de la solution.")
+            st.write(
+                "Les colonnes de votre requête ne correspondent pas exactement à celles de la solution."
+            )
             return False
 
         # Vérifie si le nombre de lignes correspond
         if result.shape[0] != solution_df.shape[0]:
-            st.write(f"Votre requête retourne un nombre de lignes différent de la solution attendue ({result.shape[0]} vs {solution_df.shape[0]}).")
+            st.write(
+                f"Votre requête retourne un nombre de lignes différent de la solution attendue ({result.shape[0]} vs {solution_df.shape[0]})."
+            )
             return False
 
         # Compare les valeurs des deux DataFrames
         if not result.equals(solution_df):
             differences = result.compare(solution_df)
-            st.write(f"Il y a des différences dans les valeurs de votre requête : {differences}")
+            st.write(
+                f"Il y a des différences dans les valeurs de votre requête : {differences}"
+            )
             return False
 
         st.balloons()  # Affiche des ballons si la requête est correcte 8)
@@ -210,9 +238,8 @@ def check_users_solution(con, solution_df: pd.DataFrame, user_query: str) -> boo
         st.write(f"Erreur lors de l'exécution ou de la comparaison des requêtes : {e}")
         return False
 
- 
 
-def get_selector_themes(memory_df : pd.DataFrame) -> str :
+def get_selector_themes(memory_df: pd.DataFrame) -> str:
     """
     Function to get themes selected by the user
 
@@ -228,10 +255,11 @@ def get_selector_themes(memory_df : pd.DataFrame) -> str :
         index=0,
         key="theme_selectbox",
     )
-    
+
     return theme
 
-def get_selector_exercises(memory_df, theme):
+
+def get_selector_exercises(memory_df: pd.DataFrame, theme: str) -> str:
     filtered_exercises = memory_df[memory_df["theme"] == theme][
         "exercise_name"
     ].to_list()
@@ -241,10 +269,11 @@ def get_selector_exercises(memory_df, theme):
         index=0,
         key="exercises_selectbox",
     )
-    
+
     return exercises_lst
 
-def get_selected_exercise(con, theme, exercises_lst):
+
+def get_selected_exercise(con, theme: str, exercises_lst: str):
     exercise = con.execute(
         f"SELECT * FROM memory_state where theme = '{theme}' and exercise_name = '{exercises_lst}'"
     ).df()
@@ -265,13 +294,19 @@ def get_selected_exercise(con, theme, exercises_lst):
 
     except FileNotFoundError:
         st.write("Fichier de réponse non trouvé")
-    return exercise,answer_str,answer,solution_df
+    return exercise, answer_str, answer, solution_df
 
-def get_questions(theme, answer_str):
+
+def get_questions(theme: str, answer_str: str) -> None:
+    """Récupère les questions depuis un folder
+
+    Args:
+        theme (str): thème sélectionné par l'utilisateur
+        answer_str (str): nom exercice sélectionné par l'utilisateur
+    """
     try:
         with open(f"questions/{theme}/{answer_str[:-4]}.txt", "r") as f:
             question: str = f.read()
             st.write(question)
     except FileNotFoundError:
         st.write("Fichier question absent")
-        
