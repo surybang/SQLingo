@@ -53,9 +53,6 @@ con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=Fals
 memory_df = functions.query_memory_df(con)
 
 
-
-
-
 # ------------------------------------------------------------
 # AUTHENT
 # ------------------------------------------------------------
@@ -63,7 +60,7 @@ memory_df = functions.query_memory_df(con)
 functions.user_auth()
 
 if "logged_in" in st.session_state and st.session_state["logged_in"]:
-    
+
     # --------------------
     # Affichage de l'app
     # --------------------
@@ -105,7 +102,7 @@ if "logged_in" in st.session_state and st.session_state["logged_in"]:
         )
         # TODO : Ajuster l'affichage du df en injectant du css pour fixer sa taille
 
-        # user + deconnect 
+        # user + deconnect
         st.write(f"Vous êtes connecté en tant que {st.session_state['username']}")
         if st.button("Déconnexion"):
             st.session_state["logged_in"] = False
@@ -134,8 +131,8 @@ if "logged_in" in st.session_state and st.session_state["logged_in"]:
             with duckdb.connect("data/exercises_sql_tables.duckdb") as conn:
                 conn.execute(update_query, (today, exercise_name))
                 conn.close()
-            st.rerun()
-        
+            #st.rerun()
+
         # Boutons pour mettre à jour la date de prochaine apparition de la question
 
     tab1, tab2 = st.tabs(["Tables", "Solution"])
@@ -154,3 +151,6 @@ if "logged_in" in st.session_state and st.session_state["logged_in"]:
         st.dataframe(solution_df)
 else:
     st.write("Veuillez vous connecter ou vous inscrire pour continuer.")
+    st.write("Si vous ne souhaitez pas vous inscrire \
+             vous pouvez utiliser l'identifiant et \
+             le mot de passe : guest")

@@ -18,14 +18,14 @@ data = {
         "cross_joins",
         "inner_joins",
         "left_joins",
-        "left_joins",
-        "left_joins",
+        # "left_joins",
+        # "left_joins",
         "full_outer_joins",
         "self_joins",
         "self_joins",
         "group_by",
         "group_by",
-        "group_by",
+        # "group_by",
         "case_when",
         "case_when",
         "case_when",
@@ -33,9 +33,9 @@ data = {
         "grouping_set",
         "grouping_set",
         "grouping_set",
-        "grouping_set",
-        "grouping_set",
-        "grouping_set",
+        # "grouping_set",
+        # "grouping_set",
+        # "grouping_set",
     ],
     "exercise_name": [
         "cross_joins_1",
@@ -43,14 +43,14 @@ data = {
         "cross_joins_3",
         "inner_joins_1",
         "left_joins_1",
-        "left_joins_2",
-        "left_joins_3",
+        # "left_joins_2",
+        # "left_joins_3",
         "full_outer_joins_1",
         "self_joins_1",
         "self_joins_2",
         "group_by_1",
         "group_by_2",
-        "group_by_3",
+        # "group_by_3",
         "case_when_1",
         "case_when_2",
         "case_when_3",
@@ -58,34 +58,41 @@ data = {
         "grouping_set_1",
         "grouping_set_2",
         "grouping_set_3",
-        "grouping_set_4",
-        "grouping_set_5",
-        "grouping_set_6",
+        # "grouping_set_4",
+        # "grouping_set_5",
+        # "grouping_set_6",
     ],
     "tables": [
+        # cross joins
         ["beverages", "food_items"],
         ["sizes", "trademarks"],
         ["hours", "quarters"],
+        # inner joins
         ["salaries", "seniorities"],
-        ["orders", "customers", "products", "order_details"],
-        ["orders", "customers", "products", "order_details"],
-        ["orders", "customers", "products", "order_details"],
+        # left joins
+        ["customers", "products", "order_details"],
+        # ["orders", "customers", "products", "order_details"],
+        # ["orders", "customers", "products", "order_details"],
+        # full outer joins
         ["df_customers", "df_stores", "df_store_products", "df_products"],
+        # self joins 
         ["employees"],
         ["sales"],
+        # group by 
         ["ventes_immo"],
         ["ventes"],
-        ["ventes"],
-        ["orders_df"],
+        # case when
         ["salaires"],
         ["discount"],
+        ["discount"],
         ["salaires"],
+        # grouping set 
         ["redbull"],
         ["datapop"],
         ["redbull"],
-        ["redbull"],
-        ["sante"],
-        ["sante"],
+        # ["redbull"],
+        # ["sante"],
+        # ["sante"],
     ],
     "last_reviewed": [
         "1970-01-01",
@@ -105,12 +112,12 @@ data = {
         "1970-01-01",
         "1970-01-01",
         "1970-01-01",
-        "1970-01-01",
-        "1970-01-01",
-        "1970-01-01",
-        "1970-01-01",
-        "1970-01-01",
-        "1970-01-01",
+        # "1970-01-01",
+        # "1970-01-01",
+        # "1970-01-01",
+        # "1970-01-01",
+        # "1970-01-01",
+        # "1970-01-01",
     ],
     "answer": [
         "cross_joins_1.sql",
@@ -118,14 +125,14 @@ data = {
         "cross_joins_3.sql",
         "inner_joins_1.sql",
         "left_joins_1.sql",
-        "left_joins_2.sql",
-        "left_joins_3.sql",
+        # "left_joins_2.sql",
+        # "left_joins_3.sql",
         "full_outer_joins_1.sql",
         "self_joins_1.sql",
         "self_joins_2.sql",
         "group_by_1.sql",
         "group_by_2.sql",
-        "group_by_3.sql",
+        # "group_by_3.sql",
         "case_when_1.sql",
         "case_when_2.sql",
         "case_when_3.sql",
@@ -133,9 +140,9 @@ data = {
         "grouping_set_1.sql",
         "grouping_set_2.sql",
         "grouping_set_3.sql",
-        "grouping_set_4.sql",
-        "grouping_set_5.sql",
-        "grouping_set_6.sql",
+        # "grouping_set_4.sql",
+        # "grouping_set_5.sql",
+        # "grouping_set_6.sql",
     ],
 }
 memory_state_df: pd.DataFrame = pd.DataFrame(data)
@@ -382,20 +389,20 @@ con.execute("CREATE TABLE IF NOT EXISTS ventes AS SELECT * FROM ventes_df")
 # ------------------------------------------------------------
 # CASE WHEN EXERCISES
 # ------------------------------------------------------------
-orders_df = {
-    "order_id": [1, 2, 3, 4, 5],
-    "order_date": [
-        "2023-01-15",
-        "2023-02-20",
-        "2023-03-05",
-        "2023-04-10",
-        "2023-05-18",
-    ],
-    "order_amount": [120, 450, 800, 60, 1500],
-}
-orders_df: pd.DataFrame = pd.DataFrame(orders_df)
+# orders_df = {
+#     "order_id": [1, 2, 3, 4, 5],
+#     "order_date": [
+#         "2023-01-15",
+#         "2023-02-20",
+#         "2023-03-05",
+#         "2023-04-10",
+#         "2023-05-18",
+#     ],
+#     "order_amount": [120, 450, 800, 60, 1500],
+# }
+# orders_df: pd.DataFrame = pd.DataFrame(orders_df)
 
-con.execute("CREATE TABLE IF NOT EXISTS orders_df AS SELECT * FROM orders_df")
+# con.execute("CREATE TABLE IF NOT EXISTS orders_df AS SELECT * FROM orders_df")
 
 
 salaires_df = {
