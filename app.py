@@ -3,14 +3,21 @@ import os
 import sys
 import subprocess
 import logging
+from datetime import date
 
 import duckdb
-import pandas as pd
 import streamlit as st
 
-import functions
-from datetime import date
-import hmac
+from functions import (
+    get_questions,
+    get_selected_exercise,
+    get_selector_exercises,
+    get_selector_themes,
+    check_users_solution,
+    query_memory_df,
+    signup_user,
+    user_auth,
+)
 
 
 # ------------------------------------------------------------
@@ -46,21 +53,22 @@ if "data" not in os.listdir():
 
 # On lance init_db.py pour créer la BDD
 if "exercises_sql_tables.duckdb" not in os.listdir("data"):
-    # exec(open("init_db.py").read())
-    subprocess.run([sys.executable, "init_db.py"])
+    try:
+        subprocess.run([sys.executable, "init_db.py"], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to execute init_db.py: {e}")
 
 con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
-memory_df = functions.query_memory_df(con)
-
+memory_df = query_memory_df(con)
+signup_user("guest", "guest")
 
 # ------------------------------------------------------------
 # AUTHENT
 # ------------------------------------------------------------
 
-functions.user_auth()
+user_auth()
 
 if "logged_in" in st.session_state and st.session_state["logged_in"]:
-
     # --------------------
     # Affichage de l'app
     # --------------------
@@ -91,13 +99,13 @@ if "logged_in" in st.session_state and st.session_state["logged_in"]:
         )
 
         # Sélection du thème
-        theme = functions.get_selector_themes(memory_df)
+        theme = get_selector_themes(memory_df)
 
         # Sélection de l'exercice en fonction du thème sélectionné
-        exercises_lst = functions.get_selector_exercises(memory_df, theme)
+        exercises_lst = get_selector_exercises(memory_df, theme)
 
         # Récupérer l'exercice
-        exercise, answer_str, answer, solution_df = functions.get_selected_exercise(
+        exercise, answer_str, answer, solution_df = get_selected_exercise(
             con, theme, exercises_lst
         )
         # TODO : Ajuster l'affichage du df en injectant du css pour fixer sa taille
@@ -108,38 +116,47 @@ if "logged_in" in st.session_state and st.session_state["logged_in"]:
             st.session_state["logged_in"] = False
             st.session_state["username"] = None
             st.rerun()
+        st.markdown(
+            """
+            Made with 🍜 by \
+            <a href='https://www.linkedin.com/in/fabien-hos/' target='_blank'>Fabien</a>,\
+            visitez <a href ='https://fabien-hos.streamlit.app/' target='_blank'>mon site</a> \
+            ou mon <a href='https://github.com/surybang' target='_blank'>GitHub</a>.
+                    """,
+            unsafe_allow_html=True,
+        )
 
     # Affichage des questions dynamiques
     st.subheader("Question :")
-    functions.get_questions(theme, answer_str)
+    get_questions(theme, answer_str)
 
     # Saisir la requête
-    query: str = st.text_area(label="Saisir votre requête SQL :", key="user_input")
+    query = st.text_area(label="Saisir votre requête SQL :", key="user_input")
 
     # Check de la requête
     if query:
-        is_solution_correct = functions.check_users_solution(con, solution_df, query)
+        IS_SOLUTION_CORRECT = check_users_solution(con, solution_df, query)
 
         # si la solution est ok alors on met à jour la date "last_reviewed"
-        if is_solution_correct:
+        if IS_SOLUTION_CORRECT:
             today = date.today().strftime("%Y-%m-%d")
             exercise_name = exercise.loc[0, "exercise_name"]
-            update_query = (
-                f"UPDATE memory_state SET last_reviewed = ? WHERE exercise_name = ?"
-            )
+            UPDATE_QUERY = """
+                UPDATE memory_state SET last_reviewed = ? WHERE exercise_name = ?
+                """
 
             with duckdb.connect("data/exercises_sql_tables.duckdb") as conn:
-                conn.execute(update_query, (today, exercise_name))
+                conn.execute(UPDATE_QUERY, (today, exercise_name))
                 conn.close()
-            #st.rerun()
+            # st.rerun()
 
         # Boutons pour mettre à jour la date de prochaine apparition de la question
 
     tab1, tab2 = st.tabs(["Tables", "Solution"])
 
     with tab1:
-        exercise_tables: str = exercise.loc[0, "tables"]
-        exercise_tables_len: int = len(exercise_tables)
+        exercise_tables = exercise.loc[0, "tables"]
+        exercise_tables_len = len(exercise_tables)
         cols = st.columns(exercise_tables_len)
         for i in range(0, exercise_tables_len):
             cols[i].write(exercise_tables[i])
@@ -147,10 +164,12 @@ if "logged_in" in st.session_state and st.session_state["logged_in"]:
             cols[i].table(df_table)
 
     with tab2:
-        st.write(answer)
+        st.code(answer, language="sql")
         st.dataframe(solution_df)
 else:
     st.write("Veuillez vous connecter ou vous inscrire pour continuer.")
-    st.write("Si vous ne souhaitez pas vous inscrire \
+    st.write(
+        "Si vous ne souhaitez pas vous inscrire \
              vous pouvez utiliser l'identifiant et \
-             le mot de passe : guest")
+             le mot de passe : guest"
+    )

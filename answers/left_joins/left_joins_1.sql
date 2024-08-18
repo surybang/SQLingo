@@ -1,8 +1,4 @@
-SELECT df_customers.customer_id,
-customer_name,
-order_id,
-product_id,
-quantity
-FROM df_customers
-LEFT JOIN detailed_order
-on df_customers.customer_id = detailed_order.customer_id
+SELECT p.product_id, p.product_name, p.product_price, od.quantity, od.order_id
+FROM products p
+LEFT JOIN order_details od
+on p.product_id = od.product_id

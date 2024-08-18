@@ -1,3 +1,7 @@
+"""
+Ce module contient toutes les fonctions nécessaires pour faire fonctionner l'application
+"""
+
 import pandas as pd
 import streamlit as st
 import duckdb
@@ -115,7 +119,7 @@ def login_user(username: str, password: str) -> bool:
         raise
 
 
-def user_auth() -> None :
+def user_auth() -> None:
     """Affiche le formulaire d'inscription ou de connexion et gère l'authentification de l'utilisateur."""
 
     # Vérifier si l'utilisateur est déjà connecté
@@ -180,7 +184,7 @@ def user_auth() -> None :
             st.session_state["signup"] = True
 
 
-def query_memory_df(con) -> pd.DataFrame :
+def query_memory_df(con) -> pd.DataFrame:
     with duckdb.connect(database="data/exercises_sql_tables.duckdb") as con:
         memory_df = (
             con.execute("SELECT * FROM memory_state")
@@ -304,9 +308,11 @@ def get_questions(theme: str, answer_str: str) -> None:
         theme (str): thème sélectionné par l'utilisateur
         answer_str (str): nom exercice sélectionné par l'utilisateur
     """
+    print(f"{answer_str[:-4]}.txt")
     try:
-        with open(f"questions/{theme}/{answer_str[:-4]}.txt", "r") as f:
+        with open(f"questions/{theme}/{answer_str[:-4]}.md", "r") as f:
+
             question: str = f.read()
-            st.write(question)
+            st.markdown(question)
     except FileNotFoundError:
         st.write("Fichier question absent")
