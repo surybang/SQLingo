@@ -1,13 +1,24 @@
+WITH department_medians AS (
+    SELECT 
+        department, 
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY wage) AS median_wage
+    FROM 
+        salaires
+    GROUP BY 
+        department
+)
 
-SELECT
-    SUM(
-        CASE
-            WHEN discount_code = 'DISCOUNT10' THEN quantity * price_per_unit * 0.9
-            WHEN discount_code = 'DISCOUNT20' THEN quantity * price_per_unit * 0.8
-            ELSE quantity * price_per_unit
-        END
-    ) AS total_revenue
-FROM
-    discount
-GROUP BY
-    discount_code
+SELECT 
+    s.name, 
+    s.department, 
+    s.wage,
+    CASE 
+        WHEN s.wage > dm.median_wage THEN 'Above Median'
+        WHEN s.wage < dm.median_wage THEN 'Below Median'
+        ELSE 'At Median'
+    END AS comparison_to_median
+FROM 
+    salaires s
+INNER JOIN department_medians dm 
+ON s.department = dm.department
+WHERE s.department != 'CEO'

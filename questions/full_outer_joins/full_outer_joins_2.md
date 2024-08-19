@@ -1,0 +1,1 @@
+Écrivez une requête SQL qui combine les informations des clients, des magasins, et des produits, en incluant tous les clients, magasins, et produits, même si certaines relations sont absentes.

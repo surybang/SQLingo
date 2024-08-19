@@ -3,7 +3,7 @@ import os
 import sys
 import subprocess
 import logging
-from datetime import date
+from datetime import date, timedelta
 
 import duckdb
 import streamlit as st
@@ -139,18 +139,32 @@ if "logged_in" in st.session_state and st.session_state["logged_in"]:
 
         # si la solution est ok alors on met à jour la date "last_reviewed"
         if IS_SOLUTION_CORRECT:
-            today = date.today().strftime("%Y-%m-%d")
-            exercise_name = exercise.loc[0, "exercise_name"]
-            UPDATE_QUERY = """
-                UPDATE memory_state SET last_reviewed = ? WHERE exercise_name = ?
+            today = date.today()
+
+            # Boutons pour mettre à jour la date de prochaine apparition de la question
+            col1, col2, col3 = st.columns(spec=3, gap="small")
+            with col1:
+                if st.button(label="Revoir dès demain"):
+                    next_review_date = today + timedelta(days=1)
+            
+            with col2:
+                if st.button(label="Revoir dans 7 jours"):
+                    next_review_date = today + timedelta(days=7)
+            
+            with col3:
+                if st.button(label="Revoir dans 14 jours"):
+                    next_review_date = today + timedelta(days=14)
+
+            # Si un bouton a été cliqué, mettre à jour la date
+            if 'next_review_date' in locals():
+                exercise_name = exercise.loc[0, "exercise_name"]
+                UPDATE_QUERY = """
+                    UPDATE memory_state SET last_reviewed = ? WHERE exercise_name = ?
                 """
-
-            with duckdb.connect("data/exercises_sql_tables.duckdb") as conn:
-                conn.execute(UPDATE_QUERY, (today, exercise_name))
-                conn.close()
-            # st.rerun()
-
-        # Boutons pour mettre à jour la date de prochaine apparition de la question
+                with duckdb.connect("data/exercises_sql_tables.duckdb") as conn:
+                    conn.execute(UPDATE_QUERY, (next_review_date.strftime("%Y-%m-%d"), exercise_name))
+                    conn.close()
+                    # st.rerun()
 
     tab1, tab2 = st.tabs(["Tables", "Solution"])
 

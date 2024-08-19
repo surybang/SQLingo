@@ -189,7 +189,7 @@ def query_memory_df(con) -> pd.DataFrame:
         memory_df = (
             con.execute("SELECT * FROM memory_state")
             .df()
-            .sort_values("last_reviewed")
+             .sort_values("last_reviewed")
             .reset_index(drop=True)
         )
 
@@ -308,7 +308,7 @@ def get_questions(theme: str, answer_str: str) -> None:
         theme (str): thème sélectionné par l'utilisateur
         answer_str (str): nom exercice sélectionné par l'utilisateur
     """
-    print(f"{answer_str[:-4]}.txt")
+    # print(f"{answer_str[:-4]}.txt")
     try:
         with open(f"questions/{theme}/{answer_str[:-4]}.md", "r") as f:
 
