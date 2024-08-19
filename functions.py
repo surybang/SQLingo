@@ -7,10 +7,101 @@ import streamlit as st
 import duckdb
 import bcrypt
 
+
 # ------------------------------------------------------------
 # FUNCTIONS
 # ------------------------------------------------------------
 
+def create_exercises_table(con, user_id):
+    """
+    Initialise la table des exercices pour user 
+    """
+    data = {
+        "user_id": [user_id] * 17,
+        "theme": [
+            "cross_joins",
+            "cross_joins",
+            "cross_joins",
+            "inner_joins",
+            "left_joins",
+            "left_joins",
+            "full_outer_joins",
+            "full_outer_joins",
+            "self_joins",
+            "self_joins",
+            "group_by",
+            "group_by",
+            "case_when",
+            "case_when",
+            "case_when",
+            "grouping_set",
+            "grouping_set",
+            # "grouping_set",
+        ],
+        "exercise_name": [
+            "cross_joins_1",
+            "cross_joins_2",
+            "cross_joins_3",
+            "inner_joins_1",
+            "left_joins_1",
+            "left_joins_2",
+            "full_outer_joins_1",
+            "full_outer_joins_2",
+            "self_joins_1",
+            "self_joins_2",
+            "group_by_1",
+            "group_by_2",
+            "case_when_1",
+            "case_when_2",
+            "case_when_3",
+            "grouping_set_1",
+            "grouping_set_2",
+            # "grouping_set_3",
+        ],
+        "tables": [
+            ["beverages", "food_items"],
+            ["sizes", "trademarks"],
+            ["hours", "quarters"],
+            ["salaries", "seniorities"],
+            ["products", "order_details"],
+            ["orders", "customers", "products", "order_details"],
+            ["df_store_products", "df_products"],
+            ["df_customers", "df_stores", "df_store_products", "df_products"],
+            ["employees"],
+            ["sales"],
+            ["ventes_immo"],
+            ["ventes"],
+            ["salaires"],
+            ["discount"],
+            ["salaires"],
+            ["redbull"],
+            ["datapop"],
+            # ["redbull"],
+        ],
+        "last_reviewed": ["1970-01-01"] * 17,
+        "answer": [
+            "cross_joins_1.sql",
+            "cross_joins_2.sql",
+            "cross_joins_3.sql",
+            "inner_joins_1.sql",
+            "left_joins_1.sql",
+            "left_joins_2.sql",
+            "full_outer_joins_1.sql",
+            "full_outer_joins_2.sql",
+            "self_joins_1.sql",
+            "self_joins_2.sql",
+            "group_by_1.sql",
+            "group_by_2.sql",
+            "case_when_1.sql",
+            "case_when_2.sql",
+            "case_when_3.sql",
+            "grouping_set_1.sql",
+            "grouping_set_2.sql",
+            # "grouping_set_3.sql",
+        ],
+    }
+    memory_state_df = pd.DataFrame(data)
+    con.execute("INSERT INTO memory_state SELECT * FROM memory_state_df")
 
 def hash_password(password: str) -> bytes:
     """Hache un mot de passe en utilisant bcrypt.
@@ -78,6 +169,8 @@ def signup_user(username: str, password: str) -> bool:
             """,
                 (username, hashed_password),
             )
+
+            create_exercises_table(con, username)
             print(f"L'utilisateur '{username}' a été inscrit avec succès.")
             return True
     except duckdb.Error as e:
@@ -184,10 +277,10 @@ def user_auth() -> None:
             st.session_state["signup"] = True
 
 
-def query_memory_df(con) -> pd.DataFrame:
+def query_memory_df(con, user_id: str) -> pd.DataFrame:
     with duckdb.connect(database="data/exercises_sql_tables.duckdb") as con:
         memory_df = (
-            con.execute("SELECT * FROM memory_state")
+            con.execute("SELECT * FROM memory_state WHERE user_id = ?", [user_id])
             .df()
              .sort_values("last_reviewed")
             .reset_index(drop=True)
@@ -277,24 +370,24 @@ def get_selector_exercises(memory_df: pd.DataFrame, theme: str) -> str:
     return exercises_lst
 
 
-def get_selected_exercise(con, theme: str, exercises_lst: str):
+def get_selected_exercise(con, theme: str, exercises_lst: str, current_user: str):
     exercise = con.execute(
-        f"SELECT * FROM memory_state where theme = '{theme}' and exercise_name = '{exercises_lst}'"
+        f"SELECT * FROM memory_state where theme = '{theme}' and exercise_name = '{exercises_lst}' and user_id = '{current_user}'"
     ).df()
     # st.write('Vous avez sélectionné', exercise)
     if not exercise.empty:
-        st.dataframe(exercise.iloc[:, :-1])  # On affiche pas la colonne réponse
+        st.dataframe(exercise.iloc[:, 1:-2])  # On affiche pas la colonne réponse
     elif exercise.empty:
         st.write("Il faut sélectionner un thème")
     else:
         st.write("Pas d'exercice disponibles pour le thème sélectionné")
 
     # Récupérer la solution de l'exercice
-    answer_str: str = exercise.loc[0, "answer"]
+    answer_str = exercise.loc[0, "answer"]
     try:
         with open(f"answers/{theme}/{answer_str}", "r") as f:
-            answer: str = f.read()
-            solution_df: pd.DataFrame = con.execute(answer).df()
+            answer = f.read()
+            solution_df = con.execute(answer).df()
 
     except FileNotFoundError:
         st.write("Fichier de réponse non trouvé")
@@ -316,3 +409,4 @@ def get_questions(theme: str, answer_str: str) -> None:
             st.markdown(question)
     except FileNotFoundError:
         st.write("Fichier question absent")
+

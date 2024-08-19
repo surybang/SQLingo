@@ -9,94 +9,21 @@ import pandas as pd
 import duckdb
 
 
-def create_exercises_table(con):
-    data = {
-        "theme": [
-            "cross_joins",
-            "cross_joins",
-            "cross_joins",
-            "inner_joins",
-            "left_joins",
-            "left_joins",
-            "full_outer_joins",
-            "full_outer_joins",
-            "self_joins",
-            "self_joins",
-            "group_by",
-            "group_by",
-            "case_when",
-            "case_when",
-            "case_when",
-            "grouping_set",
-            "grouping_set",
-            "grouping_set",
-        ],
-        "exercise_name": [
-            "cross_joins_1",
-            "cross_joins_2",
-            "cross_joins_3",
-            "inner_joins_1",
-            "left_joins_1",
-            "left_joins_2",
-            "full_outer_joins_1",
-            "full_outer_joins_2",
-            "self_joins_1",
-            "self_joins_2",
-            "group_by_1",
-            "group_by_2",
-            "case_when_1",
-            "case_when_2",
-            "case_when_3",
-            "grouping_set_1",
-            "grouping_set_2",
-            "grouping_set_3",
-        ],
-        "tables": [
-            ["beverages", "food_items"],
-            ["sizes", "trademarks"],
-            ["hours", "quarters"],
-            ["salaries", "seniorities"],
-            ["products", "order_details"],
-            ["orders", "customers", "products", "order_details"],
-            ["df_store_products", "df_products"],
-            ["df_customers", "df_stores", "df_store_products", "df_products"],
-            ["employees"],
-            ["sales"],
-            ["ventes_immo"],
-            ["ventes"],
-            ["salaires"],
-            ["discount"],
-            ["salaires"],
-            ["redbull"],
-            ["datapop"],
-            ["redbull"],
-        ],
-        "last_reviewed": ["1970-01-01"] * 18,
-        "answer": [
-            "cross_joins_1.sql",
-            "cross_joins_2.sql",
-            "cross_joins_3.sql",
-            "inner_joins_1.sql",
-            "left_joins_1.sql",
-            "left_joins_2.sql",
-            "full_outer_joins_1.sql",
-            "full_outer_joins_2.sql",
-            "self_joins_1.sql",
-            "self_joins_2.sql",
-            "group_by_1.sql",
-            "group_by_2.sql",
-            "case_when_1.sql",
-            "case_when_2.sql",
-            "case_when_3.sql",
-            "grouping_set_1.sql",
-            "grouping_set_2.sql",
-            "grouping_set_3.sql",
-        ],
-    }
-    memory_state_df = pd.DataFrame(data)
-    con.execute(
-        "CREATE TABLE IF NOT EXISTS memory_state AS SELECT * FROM memory_state_df"
-    )
+def create_memory_state_table(con):
+    """
+    Créer la table vide des exercices 
+    """
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS memory_state (
+            user_id TEXT,
+            theme TEXT,
+            exercise_name TEXT,
+            tables TEXT[],
+            last_reviewed DATE,
+            answer TEXT,
+            PRIMARY KEY (user_id, exercise_name)
+        )
+    """)
 
 
 def create_cross_joins_exercises(con):
@@ -405,7 +332,7 @@ def create_users_table(con):
 def main():
     con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
 
-    create_exercises_table(con)
+    create_memory_state_table(con)
     create_cross_joins_exercises(con)
     create_inner_joins_exercises(con)
     create_left_joins_exercises(con)

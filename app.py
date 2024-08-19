@@ -55,12 +55,9 @@ if "data" not in os.listdir():
 if "exercises_sql_tables.duckdb" not in os.listdir("data"):
     try:
         subprocess.run([sys.executable, "init_db.py"], check=True)
+        signup_user("guest", "guest")
     except subprocess.CalledProcessError as e:
         print(f"Failed to execute init_db.py: {e}")
-
-con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
-memory_df = query_memory_df(con)
-signup_user("guest", "guest")
 
 # ------------------------------------------------------------
 # AUTHENT
@@ -72,7 +69,9 @@ if "logged_in" in st.session_state and st.session_state["logged_in"]:
     # --------------------
     # Affichage de l'app
     # --------------------
-
+    current_user = st.session_state['username']
+    con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
+    memory_df = query_memory_df(con, current_user)
     with st.sidebar:
         # st.write(f"Bienvenue, {st.session_state['username']}!")
 
@@ -106,12 +105,12 @@ if "logged_in" in st.session_state and st.session_state["logged_in"]:
 
         # Récupérer l'exercice
         exercise, answer_str, answer, solution_df = get_selected_exercise(
-            con, theme, exercises_lst
+            con, theme, exercises_lst, current_user
         )
         # TODO : Ajuster l'affichage du df en injectant du css pour fixer sa taille
 
         # user + deconnect
-        st.write(f"Vous êtes connecté en tant que {st.session_state['username']}")
+        st.write(f"Vous êtes connecté en tant que {current_user}")
         if st.button("Déconnexion"):
             st.session_state["logged_in"] = False
             st.session_state["username"] = None
@@ -146,23 +145,29 @@ if "logged_in" in st.session_state and st.session_state["logged_in"]:
             with col1:
                 if st.button(label="Revoir dès demain"):
                     next_review_date = today + timedelta(days=1)
+                    # print(f"{current_user} veut revoir la requête le {next_review_date}")
             
             with col2:
                 if st.button(label="Revoir dans 7 jours"):
                     next_review_date = today + timedelta(days=7)
+                    # print(f"{current_user} veut revoir la requête le {next_review_date}")
             
             with col3:
                 if st.button(label="Revoir dans 14 jours"):
                     next_review_date = today + timedelta(days=14)
+                    # print(f"{current_user} veut revoir la requête le {next_review_date}")
 
             # Si un bouton a été cliqué, mettre à jour la date
             if 'next_review_date' in locals():
                 exercise_name = exercise.loc[0, "exercise_name"]
                 UPDATE_QUERY = """
-                    UPDATE memory_state SET last_reviewed = ? WHERE exercise_name = ?
+                    UPDATE memory_state 
+                    SET last_reviewed = ? 
+                    WHERE exercise_name = ? 
+                    AND user_id = ?
                 """
                 with duckdb.connect("data/exercises_sql_tables.duckdb") as conn:
-                    conn.execute(UPDATE_QUERY, (next_review_date.strftime("%Y-%m-%d"), exercise_name))
+                    conn.execute(UPDATE_QUERY, (next_review_date.strftime("%Y-%m-%d"), exercise_name, current_user))
                     conn.close()
                     # st.rerun()
 
