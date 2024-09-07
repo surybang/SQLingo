@@ -118,9 +118,9 @@ if "logged_in" in st.session_state and st.session_state["logged_in"]:
         st.markdown(
             """
             Made with 🍜 by \
-            <a href='https://www.linkedin.com/in/fabien-hos/' target='_blank'>Fabien</a>,\
-            visitez <a href ='https://fabien-hos.streamlit.app/' target='_blank'>mon site</a> \
-            ou mon <a href='https://github.com/surybang' target='_blank'>GitHub</a>.
+            <a href='https://www.linkedin.com/in/fabien-hos/' target='_blank'>Fabien</a>\
+            <br><br><a href ='https://fabien-hos.streamlit.app/' target='_blank'>Mon site</a> \
+            <br><a href='https://github.com/surybang' target='_blank'>GitHub</a>
                     """,
             unsafe_allow_html=True,
         )
