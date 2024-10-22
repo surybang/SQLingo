@@ -6,15 +6,17 @@ import pandas as pd
 import streamlit as st
 import duckdb
 import bcrypt
+from pathlib import Path
 
 
 # ------------------------------------------------------------
 # FUNCTIONS
 # ------------------------------------------------------------
 
+
 def create_exercises_table(con, user_id):
     """
-    Initialise la table des exercices pour user 
+    Initialise la table des exercices pour user
     """
     data = {
         "user_id": [user_id] * 17,
@@ -102,6 +104,7 @@ def create_exercises_table(con, user_id):
     }
     memory_state_df = pd.DataFrame(data)
     con.execute("INSERT INTO memory_state SELECT * FROM memory_state_df")
+
 
 def hash_password(password: str) -> bytes:
     """Hache un mot de passe en utilisant bcrypt.
@@ -282,7 +285,7 @@ def query_memory_df(con, user_id: str) -> pd.DataFrame:
         memory_df = (
             con.execute("SELECT * FROM memory_state WHERE user_id = ?", [user_id])
             .df()
-             .sort_values("last_reviewed")
+            .sort_values("last_reviewed")
             .reset_index(drop=True)
         )
 
@@ -385,7 +388,8 @@ def get_selected_exercise(con, theme: str, exercises_lst: str, current_user: str
     # Récupérer la solution de l'exercice
     answer_str = exercise.loc[0, "answer"]
     try:
-        with open(f"answers/{theme}/{answer_str}", "r") as f:
+        answer_file = Path(f"Exercices/answers/{theme}/{answer_str}")
+        with open(answer_file, "r") as f:
             answer = f.read()
             solution_df = con.execute(answer).df()
 
@@ -403,10 +407,10 @@ def get_questions(theme: str, answer_str: str) -> None:
     """
     # print(f"{answer_str[:-4]}.txt")
     try:
-        with open(f"questions/{theme}/{answer_str[:-4]}.md", "r") as f:
+        question_file = Path(f"Exercices/questions/{theme}/{answer_str[:-4]}.md")
+        with question_file.open("r") as f:
 
             question: str = f.read()
             st.markdown(question)
     except FileNotFoundError:
         st.write("Fichier question absent")
-

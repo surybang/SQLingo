@@ -11,9 +11,10 @@ import duckdb
 
 def create_memory_state_table(con):
     """
-    Créer la table vide des exercices 
+    Créer la table vide des exercices
     """
-    con.execute("""
+    con.execute(
+        """
         CREATE TABLE IF NOT EXISTS memory_state (
             user_id TEXT,
             theme TEXT,
@@ -23,7 +24,8 @@ def create_memory_state_table(con):
             answer TEXT,
             PRIMARY KEY (user_id, exercise_name)
         )
-    """)
+    """
+    )
 
 
 def create_cross_joins_exercises(con):
