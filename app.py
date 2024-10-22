@@ -69,7 +69,7 @@ if "logged_in" in st.session_state and st.session_state["logged_in"]:
     # --------------------
     # Affichage de l'app
     # --------------------
-    current_user = st.session_state['username']
+    current_user = st.session_state["username"]
     con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
     memory_df = query_memory_df(con, current_user)
     with st.sidebar:
@@ -146,19 +146,19 @@ if "logged_in" in st.session_state and st.session_state["logged_in"]:
                 if st.button(label="Revoir dès demain"):
                     next_review_date = today + timedelta(days=1)
                     # print(f"{current_user} veut revoir la requête le {next_review_date}")
-            
+
             with col2:
                 if st.button(label="Revoir dans 7 jours"):
                     next_review_date = today + timedelta(days=7)
                     # print(f"{current_user} veut revoir la requête le {next_review_date}")
-            
+
             with col3:
                 if st.button(label="Revoir dans 14 jours"):
                     next_review_date = today + timedelta(days=14)
                     # print(f"{current_user} veut revoir la requête le {next_review_date}")
 
             # Si un bouton a été cliqué, mettre à jour la date
-            if 'next_review_date' in locals():
+            if "next_review_date" in locals():
                 exercise_name = exercise.loc[0, "exercise_name"]
                 UPDATE_QUERY = """
                     UPDATE memory_state 
@@ -167,7 +167,14 @@ if "logged_in" in st.session_state and st.session_state["logged_in"]:
                     AND user_id = ?
                 """
                 with duckdb.connect("data/exercises_sql_tables.duckdb") as conn:
-                    conn.execute(UPDATE_QUERY, (next_review_date.strftime("%Y-%m-%d"), exercise_name, current_user))
+                    conn.execute(
+                        UPDATE_QUERY,
+                        (
+                            next_review_date.strftime("%Y-%m-%d"),
+                            exercise_name,
+                            current_user,
+                        ),
+                    )
                     conn.close()
                     # st.rerun()
 
