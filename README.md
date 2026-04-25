@@ -28,6 +28,14 @@ Au lancement, tu sélectionnes les thèmes que tu veux travailler. SQLingo méla
 **Une seule source de vérité pour les exercices.** Tous les exercices sont définis dans `exercises.yaml`. Ajouter un exercice ne nécessite pas de toucher au code Python.
 
 **Comparaison order-insensitive.** La vérification des requêtes trie les deux DataFrames avant comparaison — une requête correcte sans `ORDER BY` explicite n'est pas pénalisée.
+## Accéder à la version en ligne
+[L'application est disponible](https://sqlingo.streamlit.app/) sur Community Cloud de `Streamlit`.
+## Installation en local
+ ```bash
+git clone https://github.com/surybang/SQLingo.git
+cd SQLingo
+make start
+```
 
 ## Lancer le projet
 
