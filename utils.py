@@ -26,6 +26,7 @@ from config import (
 # CHARGEMENT DES EXERCICES
 # ------------------------------------------------------------
 
+
 def load_exercises() -> list[dict]:
     """Charge la liste des exercices depuis exercises.yaml.
 
@@ -39,6 +40,7 @@ def load_exercises() -> list[dict]:
 # ------------------------------------------------------------
 # SESSION SRS-LIKE
 # ------------------------------------------------------------
+
 
 def init_session(themes: list[str] | None = None) -> None:
     """Initialise la session Streamlit avec une queue d'exercices mélangée.
@@ -91,6 +93,7 @@ def record_result(exercise: dict, correct: bool) -> None:
 # VÉRIFICATION DE LA REQUÊTE UTILISATEUR
 # ------------------------------------------------------------
 
+
 def check_users_solution(con, solution_df: pd.DataFrame, user_query: str) -> bool:
     """Vérifie que la requête SQL de l'utilisateur produit le bon résultat.
 
@@ -128,11 +131,17 @@ def check_users_solution(con, solution_df: pd.DataFrame, user_query: str) -> boo
             return False
 
         # Valeurs (order-insensitive)
-        result_sorted = result.sort_values(by=list(result.columns)).reset_index(drop=True)
-        solution_sorted = solution_df.sort_values(by=list(solution_df.columns)).reset_index(drop=True)  # noqa: E501
+        result_sorted = result.sort_values(by=list(result.columns)).reset_index(
+            drop=True
+        )
+        solution_sorted = solution_df.sort_values(
+            by=list(solution_df.columns)
+        ).reset_index(drop=True)  # noqa: E501
 
         if not result_sorted.equals(solution_sorted):
-            st.warning("Les colonnes et le nombre de lignes sont bons, mais certaines valeurs différent.")  # noqa: E501
+            st.warning(
+                "Les colonnes et le nombre de lignes sont bons, mais certaines valeurs différent."
+            )  # noqa: E501
             return False
 
         st.balloons()
@@ -146,6 +155,7 @@ def check_users_solution(con, solution_df: pd.DataFrame, user_query: str) -> boo
 # ------------------------------------------------------------
 # AFFICHAGE
 # ------------------------------------------------------------
+
 
 def show_question(exercise: dict) -> None:
     """Affiche l'énoncé markdown de l'exercice courant.

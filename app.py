@@ -51,7 +51,9 @@ def render_home() -> None:
     cols = st.columns(3)
     for i, theme in enumerate(all_themes):
         with cols[i % 3]:
-            if st.checkbox(theme.replace("_", " ").title(), value=True, key=f"theme_{theme}"):
+            if st.checkbox(
+                theme.replace("_", " ").title(), value=True, key=f"theme_{theme}"
+            ):
                 selected_themes.append(theme)
 
     st.divider()
@@ -67,6 +69,7 @@ def render_home() -> None:
 # ------------------------------------------------------------
 # ÉCRAN EXERCICE
 # ------------------------------------------------------------
+
 
 def render_exercise() -> None:
     exercise = get_current_exercise()
@@ -152,6 +155,7 @@ def render_exercise() -> None:
         try:
             solution_df = load_solution(con, exercise)
             from config import ANSWERS_PATH
+
             sql = (ANSWERS_PATH / exercise["theme"] / exercise["answer"]).read_text()
             st.code(sql, language="sql")
             st.dataframe(solution_df)
@@ -162,6 +166,7 @@ def render_exercise() -> None:
 # ------------------------------------------------------------
 # ÉCRAN DE FIN
 # ------------------------------------------------------------
+
 
 def render_end() -> None:
     score = st.session_state["score"]
