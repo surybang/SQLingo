@@ -4,7 +4,7 @@ from pathlib import Path
 
 # Paramètres chemin d'accès
 DB_PATH = Path("exercices_tables.duckdb")
-EXERCICES_PATH = Path("Exercices.yaml")
+EXERCISES_PATH = Path("Exercises.yaml")
 QUESTIONS_PATH = Path("Exercices/questions")
 ANSWERS_PATH = Path("Exercices/answers")
 
