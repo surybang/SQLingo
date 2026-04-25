@@ -1,201 +1,202 @@
-# pylint: disable=missing-module-docstring
-import os
-import sys
-import subprocess
-import logging
-from datetime import date, timedelta
+"""
+app.py - Point d'entrée de SQLingo.
+"""
 
-import duckdb
 import streamlit as st
 
-from functions import (
-    get_questions,
-    get_selected_exercise,
-    get_selector_exercises,
-    get_selector_themes,
+from db import get_connection, init_db
+from utils import (
     check_users_solution,
-    query_memory_df,
-    signup_user,
-    user_auth,
+    get_current_exercise,
+    init_session,
+    load_exercises,
+    load_solution,
+    record_result,
+    show_question,
+    show_tables,
 )
 
+# ------------------------------------------------------------
+# CONFIG
+# ------------------------------------------------------------
 
-# ------------------------------------------------------------
-# CONFIG PAGE
-# ------------------------------------------------------------
 st.set_page_config(
-    page_title="SQL_SRS",
+    page_title="SQLingo",
     page_icon="😎",
     layout="wide",
 )
 
-st.markdown(
-    """
-        <style>
-        .text-font {
-                        font-size:20px;
-                        text-align:justify;
-                    }
-        </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 # ------------------------------------------------------------
-# SETUP
-# ------------------------------------------------------------
-# Création du dossier data
-if "data" not in os.listdir():
-    print("creating folder data")
-    logging.error(os.listdir())
-    logging.error("creating folder data")
-    os.mkdir("data")
-
-# On lance init_db.py pour créer la BDD
-if "exercises_sql_tables.duckdb" not in os.listdir("data"):
-    try:
-        subprocess.run([sys.executable, "init_db.py"], check=True)
-        signup_user("guest", "guest")
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to execute init_db.py: {e}")
-
-# ------------------------------------------------------------
-# AUTHENT
+# INITIALISATION DB
 # ------------------------------------------------------------
 
-user_auth()
+init_db()
+con = get_connection()
 
-if "logged_in" in st.session_state and st.session_state["logged_in"]:
-    # --------------------
-    # Affichage de l'app
-    # --------------------
-    current_user = st.session_state["username"]
-    con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
-    memory_df = query_memory_df(con, current_user)
+# ------------------------------------------------------------
+# ÉCRAN D'ACCUEIL
+# ------------------------------------------------------------
+
+
+def render_home() -> None:
+    st.title("😎 SQLingo")
+    st.markdown("Entraîne-toi au SQL avec un système de répétition espacée.")
+    st.divider()
+
+    exercises = load_exercises()
+    all_themes = sorted({e["theme"] for e in exercises})
+
+    st.subheader("Thèmes")
+    selected_themes = []
+    cols = st.columns(3)
+    for i, theme in enumerate(all_themes):
+        with cols[i % 3]:
+            if st.checkbox(theme.replace("_", " ").title(), value=True, key=f"theme_{theme}"):
+                selected_themes.append(theme)
+
+    st.divider()
+
+    n_selected = sum(1 for e in exercises if e["theme"] in selected_themes)
+    st.caption(f"{n_selected} exercice(s) sélectionné(s)")
+
+    if st.button("🚀 Démarrer", disabled=not selected_themes, type="primary"):
+        init_session(themes=selected_themes)
+        st.rerun()
+
+
+# ------------------------------------------------------------
+# ÉCRAN EXERCICE
+# ------------------------------------------------------------
+
+def render_exercise() -> None:
+    exercise = get_current_exercise()
+
+    if exercise is None:
+        st.session_state["session_started"] = False
+        st.session_state["session_finished"] = True
+        st.rerun()
+        return
+
+    score = st.session_state["score"]
+    queue = st.session_state["queue"]
+    total = score["correct"] + score["incorrect"] + len(queue)
+    done = score["correct"] + score["incorrect"]
+
+    # --- Sidebar ---
     with st.sidebar:
-        # st.write(f"Bienvenue, {st.session_state['username']}!")
-
-        # Forcer le padding de la sidebar pour éviter l'espace blanc en haut
-        st.markdown(
-            """
-        <style>
-        .st-emotion-cache-10oheav {
-            padding: 1rem 1rem !important;
-        }
-        </style>
-        """,
-            unsafe_allow_html=True,
-        )
-
-        # Titre dans la sidebar
-        st.markdown(
-            """
-            <div style="margin-top: 0px ; text-align: center;">
-                <h1>😎 SQLingo 😎</h1>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        # Sélection du thème
-        theme = get_selector_themes(memory_df)
-
-        # Sélection de l'exercice en fonction du thème sélectionné
-        exercises_lst = get_selector_exercises(memory_df, theme)
-
-        # Récupérer l'exercice
-        exercise, answer_str, answer, solution_df = get_selected_exercise(
-            con, theme, exercises_lst, current_user
-        )
-        # TODO : Ajuster l'affichage du df en injectant du css pour fixer sa taille
-
-        # user + deconnect
-        st.write(f"Vous êtes connecté en tant que {current_user}")
-        if st.button("Déconnexion"):
-            st.session_state["logged_in"] = False
-            st.session_state["username"] = None
+        st.markdown("## 😎 SQLingo")
+        st.divider()
+        st.metric("✅ Correct", score["correct"])
+        st.metric("❌ À revoir", score["incorrect"])
+        st.progress(done / total if total else 0)
+        st.caption(f"{done} / {total} exercices")
+        st.divider()
+        if st.button("🏠 Accueil", use_container_width=True):
+            st.session_state["session_started"] = False
             st.rerun()
+
+        st.divider()
         st.markdown(
-            """
-            Made with 🍜 by \
-            <a href='https://www.linkedin.com/in/fabien-hos/' target='_blank'>Fabien</a>\
-            <br><br><a href ='https://fabien-hos.streamlit.app/' target='_blank'>Mon site</a> \
-            <br><a href='https://github.com/surybang' target='_blank'>GitHub</a>
-                    """,
+            "Made with 🍜 by "
+            "<a href='https://www.linkedin.com/in/fabien-hos/' target='_blank'>Fabien</a>"
+            "<br><a href='https://github.com/surybang/SQLingo' target='_blank'>"
+            "<img src='https://cdn.simpleicons.org/github' width='16' "
+            "style='vertical-align:middle; margin-right:4px;'>Voir sur GitHub</a>",
             unsafe_allow_html=True,
         )
 
-    # Affichage des questions dynamiques
-    st.subheader("Question :")
-    get_questions(theme, answer_str)
+    # --- Contenu principal ---
+    theme_label = exercise["theme"].replace("_", " ").title()
+    st.markdown(f"**Thème :** {theme_label} · **Exercice :** `{exercise['name']}`")
+    st.divider()
 
-    # Saisir la requête
-    query = st.text_area(label="Saisir votre requête SQL :", key="user_input")
+    col_question, col_tables = st.columns([3, 2])
 
-    # Check de la requête
-    if query:
-        IS_SOLUTION_CORRECT = check_users_solution(con, solution_df, query)
+    with col_question:
+        st.subheader("Question")
+        show_question(exercise)
 
-        # si la solution est ok alors on met à jour la date "last_reviewed"
-        if IS_SOLUTION_CORRECT:
-            today = date.today()
+        st.subheader("Ta requête")
+        user_query = st.text_area(
+            label="Saisir ta requête SQL :",
+            height=200,
+            key=f"query_{exercise['name']}",
+            label_visibility="collapsed",
+        )
 
-            # Boutons pour mettre à jour la date de prochaine apparition de la question
-            col1, col2, col3 = st.columns(spec=3, gap="small")
-            with col1:
-                if st.button(label="Revoir dès demain"):
-                    next_review_date = today + timedelta(days=1)
-                    # print(f"{current_user} veut revoir la requête le {next_review_date}")
+        if st.button("✅ Valider", type="primary", disabled=not user_query):
+            try:
+                solution_df = load_solution(con, exercise)
+            except FileNotFoundError:
+                st.error(f"Fichier solution introuvable pour `{exercise['name']}`.")
+                return
 
-            with col2:
-                if st.button(label="Revoir dans 7 jours"):
-                    next_review_date = today + timedelta(days=7)
-                    # print(f"{current_user} veut revoir la requête le {next_review_date}")
+            correct = check_users_solution(con, solution_df, user_query)
+            record_result(exercise, correct)
 
-            with col3:
-                if st.button(label="Revoir dans 14 jours"):
-                    next_review_date = today + timedelta(days=14)
-                    # print(f"{current_user} veut revoir la requête le {next_review_date}")
+            if correct:
+                st.success("Bonne réponse ! Exercice suivant →")
+                if st.button("Continuer →"):
+                    st.rerun()
+            else:
+                st.error("Pas tout à fait - l'exercice reviendra un peu plus tard.")
+                if st.button("Continuer →"):
+                    st.rerun()
 
-            # Si un bouton a été cliqué, mettre à jour la date
-            if "next_review_date" in locals():
-                exercise_name = exercise.loc[0, "exercise_name"]
-                UPDATE_QUERY = """
-                    UPDATE memory_state 
-                    SET last_reviewed = ? 
-                    WHERE exercise_name = ? 
-                    AND user_id = ?
-                """
-                with duckdb.connect("data/exercises_sql_tables.duckdb") as conn:
-                    conn.execute(
-                        UPDATE_QUERY,
-                        (
-                            next_review_date.strftime("%Y-%m-%d"),
-                            exercise_name,
-                            current_user,
-                        ),
-                    )
-                    conn.close()
-                    # st.rerun()
+    with col_tables:
+        st.subheader("Tables disponibles")
+        show_tables(con, exercise)
 
-    tab1, tab2 = st.tabs(["Tables", "Solution"])
+    # --- Onglet solution ---
+    with st.expander("Voir la solution"):
+        try:
+            solution_df = load_solution(con, exercise)
+            from config import ANSWERS_PATH
+            sql = (ANSWERS_PATH / exercise["theme"] / exercise["answer"]).read_text()
+            st.code(sql, language="sql")
+            st.dataframe(solution_df)
+        except FileNotFoundError:
+            st.warning("Fichier solution introuvable.")
 
-    with tab1:
-        exercise_tables = exercise.loc[0, "tables"]
-        exercise_tables_len = len(exercise_tables)
-        cols = st.columns(exercise_tables_len)
-        for i in range(0, exercise_tables_len):
-            cols[i].write(exercise_tables[i])
-            df_table = con.execute(f"SELECT * FROM {exercise_tables[i]}").df()
-            cols[i].table(df_table)
 
-    with tab2:
-        st.code(answer, language="sql")
-        st.dataframe(solution_df)
+# ------------------------------------------------------------
+# ÉCRAN DE FIN
+# ------------------------------------------------------------
+
+def render_end() -> None:
+    score = st.session_state["score"]
+    history = st.session_state["history"]
+    total = score["correct"] + score["incorrect"]
+
+    st.title("🎉 Session terminée !")
+    st.divider()
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total", total)
+    col2.metric("✅ Corrects", score["correct"])
+    col3.metric("❌ À revoir", score["incorrect"])
+
+    errors = [(ex, r) for ex, r in history if r == "incorrect"]
+    if errors:
+        st.divider()
+        st.subheader("Exercices à retravailler")
+        for ex, _ in errors:
+            st.markdown(f"- **{ex['theme']}** · `{ex['name']}`")
+
+    st.divider()
+    if st.button("🔄 Recommencer", type="primary"):
+        for key in ["session_started", "session_finished", "queue", "score", "history"]:
+            st.session_state.pop(key, None)
+        st.rerun()
+
+
+# ------------------------------------------------------------
+# ROUTEUR
+# ------------------------------------------------------------
+
+if st.session_state.get("session_finished"):
+    render_end()
+elif st.session_state.get("session_started"):
+    render_exercise()
 else:
-    st.write("Veuillez vous connecter ou vous inscrire pour continuer.")
-    st.write(
-        "Si vous ne souhaitez pas vous inscrire \
-             vous pouvez utiliser l'identifiant et \
-             le mot de passe : guest"
-    )
+    render_home()
