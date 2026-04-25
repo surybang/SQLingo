@@ -1,24 +1,65 @@
+# 😎 SQLingo
 
-# SRS - Spaced Repetition System
+Entraîne-toi au SQL !
 
-Le **Spaced Repetition System (SRS)** est une technique d'apprentissage qui consiste à augmenter les intervalles de révision entre chaque session de révision pour un même contenu. Cette méthode est basée sur l'effet de la courbe de l'oubli, qui montre comment notre capacité à retenir des informations diminue avec le temps sans révision.
+## Comment ça marche
 
-**Utilité :**
-- **Efficacité de l'apprentissage :** En révisant les informations juste avant que l'oubli ne commence, le SRS augmente la rétention à long terme des connaissances.
-- **Optimisation du temps :** Les utilisateurs passent moins de temps sur des sujets qu'ils maîtrisent déjà et se concentrent davantage sur des domaines moins familiers.
+Au lancement, tu sélectionnes les thèmes que tu veux travailler. SQLingo mélange les exercices et te les présente un par un. Si tu réponds correctement, l'exercice disparaît de la queue. Sinon, il revient quelques exercices plus tard. En fin de session, tu vois ton score et la liste des exercices à retravailler.
 
-## Streamlit
+## Thèmes disponibles
 
-**Définition :** **Streamlit** est un framework open-source de Python conçu pour créer des applications webs.
+- Cross joins, Inner joins, Left joins, Full outer joins, Self joins
+- Group by
+- Case when
+- Grouping sets
 
-**Utilité :**
-- **Déploiement rapide :** Permet aux data scientists de transformer des scripts Python en applications web interactives sans nécessiter une expertise approfondie en développement web.
-- **Interactivité :** Offre des widgets intégrés pour interagir avec les utilisateurs.
+## Stack
 
-## DuckDB
+- **[Streamlit](https://streamlit.io/)** — interface web interactive en Python
+- **[DuckDB](https://duckdb.org/)** — base de données embarquée pour exécuter les requêtes SQL
+- **[uv](https://github.com/astral-sh/uv)** — gestion des dépendances
 
-**DuckDB** est un moteur de base de données embarqué orienté colonnes, conçu pour l'analyse de données OLAP (Online Analytical Processing) sur des systèmes de gestion de base de données relationnelle.
+## Choix techniques
 
-**Utilité :**
-- **Facilité d'intégration :** Peut être utilisé comme une bibliothèque au sein d'autres applications sans nécessiter de configuration de serveur séparée.
-- **Performance optimisée :** Utilise l'exécution de requêtes vectorisées pour améliorer les performances de lecture et d'analyse des données.
+**Pas de compte utilisateur.** La progression est gérée entièrement via `st.session_state`. Une queue d'exercices mélangée au démarrage, repositionnée selon les résultats.
+
+**DuckDB comme moteur SQL.** Pas de serveur à configurer, DuckDB tourne directement dans le process Python et exécute des requêtes SQL.
+
+**Une seule source de vérité pour les exercices.** Tous les exercices sont définis dans `exercises.yaml`. Ajouter un exercice ne nécessite pas de toucher au code Python.
+
+**Comparaison order-insensitive.** La vérification des requêtes trie les deux DataFrames avant comparaison — une requête correcte sans `ORDER BY` explicite n'est pas pénalisée.
+
+## Lancer le projet
+
+```bash
+make start   # install + init DB + lance l'app
+```
+
+Les commandes disponibles :
+
+```bash
+make install  # installe les dépendances (uv sync)
+make init     # initialise la base de données
+make run      # lance l'application
+make reset    # repart d'une DB vierge
+```
+
+## Structure
+
+```
+SQLingo/
+├── app.py            # Point d'entrée, routing entre les écrans
+├── db.py             # Initialisation DB et connexion partagée
+├── utils.py          # Logique SRS, vérification des requêtes, affichage
+├── config.py         # Chemins et constantes globales
+├── exercises.yaml    # Source de vérité pour tous les exercices
+└── Exercices/
+    ├── answers/      # Fichiers SQL solution par thème
+    └── questions/    # Énoncés Markdown par thème
+```
+
+## Ajouter un exercice
+
+1. Ajouter un bloc dans `exercises.yaml`
+2. Créer le fichier `Exercices/questions/<theme>/<name>.md`
+3. Créer le fichier `Exercices/answers/<theme>/<name>.sql`
