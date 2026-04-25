@@ -129,10 +129,10 @@ def check_users_solution(con, solution_df: pd.DataFrame, user_query: str) -> boo
 
         # Valeurs (order-insensitive)
         result_sorted = result.sort_values(by=list(result.columns)).reset_index(drop=True)
-        solution_sorted = solution_df.sort_values(by=list(solution_df.columns)).reset_index(drop=True)
+        solution_sorted = solution_df.sort_values(by=list(solution_df.columns)).reset_index(drop=True)  # noqa: E501
 
         if not result_sorted.equals(solution_sorted):
-            st.warning("Les colonnes et le nombre de lignes sont bons, mais certaines valeurs différent.")
+            st.warning("Les colonnes et le nombre de lignes sont bons, mais certaines valeurs différent.")  # noqa: E501
             return False
 
         st.balloons()
